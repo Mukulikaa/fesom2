@@ -16,7 +16,6 @@ module fesom_main_storage_module
   use g_forcing_arrays
   use io_RESTART
   use io_MEANDATA
-  use io_xios_module
   use io_mesh_info
   use diagnostics
   ! Read-only access to the CMOR scalar diagnostics computed inside
@@ -252,21 +251,6 @@ contains
 
         if (f%mype==0) write(*,*) 'FESOM mesh_setup... complete'
 
-#if defined (__XIOS)
-        ! XIOS client init (NEMO/OIFS pattern). xios_initialize is called with
-        ! local_comm=MPI_COMM_FESOM -- OASIS already split MPI_COMM_WORLD, so
-        ! no further split is needed; the FESOM comm stays valid. The separate
-        ! xios_server.exe binary registers with OASIS independently.
-        !
-        ! Ordering: OASIS3-MCT was initialised above (before par_init). This
-        ! matches the EC-Earth-proven NEMO ordering (OASIS -> XIOS on OASIS
-        ! local comm). Called here after mesh_setup so coord_nod2D /
-        ! elem2D_nodes / zbar / myList_* are populated.
-        block
-          integer :: xios_client_comm
-          call io_xios_init(f%mesh, f%partit, f%partit%MPI_COMM_FESOM, xios_client_comm)
-        end block
-#endif
 
 !       Transient tracers: control output of initial input values
         if(use_transit .and. anthro_transit .and. f%mype==0) then
@@ -637,9 +621,6 @@ contains
     ntotal=f%from_nstep-1+current_nsteps
 
     do n=nstart, ntotal
-#if defined (__XIOS)
-        call io_xios_update_calendar(n)
-#endif
         if (use_icebergs) then
                 !n_ib         = n
                 u_wind_ib    = u_wind
@@ -833,25 +814,6 @@ contains
         call fesom_profiler_end("compute_diagnostics")
 #endif
 
-        ! XIOS send for CMOR 0D scalars. xios_send_field is a collective
-        ! over the FESOM client context: ALL ranks must participate or
-        ! XIOS errors with "callers not coherent" (event_server.cpp:29).
-        ! The values are MPI_AllReduced inside compute_cmor_diag so every
-        ! rank has the same global value; XIOS-side operation="average"
-        ! over identical values reduces to that value. The legacy
-        ! output_0D_streams writer is gated on io_xios_is_on() so these
-        ! scalars no longer double-write at every step.
-        if (ldiag_cmor .and. io_xios_is_on()) then
-            call io_xios_send_0d_r8('volo',      real(volo,      kind=8))
-            call io_xios_send_0d_r8('soga',      real(soga,      kind=8))
-            call io_xios_send_0d_r8('thetaoga',  real(thetaoga,  kind=8))
-            call io_xios_send_0d_r8('siarean',   real(siarean,   kind=8))
-            call io_xios_send_0d_r8('siareas',   real(siareas,   kind=8))
-            call io_xios_send_0d_r8('siextentn', real(siextentn, kind=8))
-            call io_xios_send_0d_r8('siextents', real(siextents, kind=8))
-            call io_xios_send_0d_r8('sivoln',    real(sivoln,    kind=8))
-            call io_xios_send_0d_r8('sivols',    real(sivols,    kind=8))
-        end if
         ! Reset 0D accumulators at month end — outside the io_xios_is_on() block
         ! so the reset fires in both XIOS and legacy output modes. Gated on
         ! monthly_event (FESOM calendar) so it is independent of XIOS field
@@ -1070,11 +1032,6 @@ contains
     ! Per-stream cumulative cost — printed sorted at finalize from rank 0.
     call print_per_stream_costs(f%partit%MPI_COMM_FESOM, f%partit%mype, f%npes)
 
-#if defined (__XIOS)
-   ! Must finalize XIOS BEFORE MPI/OASIS teardown so server2 receives
-   ! the client-finalize signal on MPI_COMM_WORLD (matches NEMO/OIFS).
-   call io_xios_close()
-#endif
 
 #if defined (__oifs)
     ! OpenIFS coupled version has to call oasis_terminate through par_ex
