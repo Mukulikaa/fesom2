@@ -16,7 +16,7 @@ set(FESOM_COUPLED       OFF CACHE BOOL "compile fesom standalone or with oasis s
 set(OIFS_COUPLED        OFF CACHE BOOL "compile fesom coupled to OpenIFS. (Also needs FESOM_COUPLED to work)")
 set(USE_YAC             OFF CACHE BOOL "compile fesom with yac")
 set(CRAY                OFF CACHE BOOL "compile with cray ftn")
-set(USE_ICEPACK         OFF CACHE BOOL "compile fesom with the Iceapck modules for sea ice column physics.")
+set(USE_ICEPACK         ON CACHE BOOL "compile fesom with the Iceapck modules for sea ice column physics.")
 set(OPENMP_REPRODUCIBLE OFF CACHE BOOL "serialize OpenMP loops that are critical for reproducible results")
 set(RECOM_COUPLED       OFF CACHE BOOL "compile fesom including biogeochemistry, REcoM3")
 set(CISO_COUPLED        OFF CACHE BOOL "compile ciso coupled to REcoM3. RECOM_COUPLED has to be active")
