@@ -1,0 +1,2458 @@
+diff -r Icepack/columnphysics/icepack_algae.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_algae.F90
+397c397,398
+<                                iphin,        trcrn,      &
+---
+>                                iphin,                    &! ntrcr
+>                                trcrn,        aice_old,   &!aice_old
+1862,1865c1863,1869
+<           if (R_Si2N(k) > c0) then
+<              grow_N(k) = min(U_Sil(k)/R_Si2N(k),U_Nit(k) + U_Am(k), U_Fe(k)/R_Fe2N(k))
+<           else
+<              grow_N(k) = min(U_Nit(k) + U_Am(k),U_Fe(k)/R_Fe2N(k))
+---
+> 
+>           if (n_fed == 0) then
+>              if (R_Si2N(k) > c0) then
+>                 grow_N(k) = min(U_Sil(k)/R_Si2N(k),U_Nit(k) + U_Am(k), U_Fe(k)/R_Fe2N(k))
+>              else
+>                 grow_N(k) = min(U_Nit(k) + U_Am(k),U_Fe(k)/R_Fe2N(k))
+>              endif
+diff -r Icepack/columnphysics/icepack_atmo.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_atmo.F90
+510c510,511
+<       subroutine neutral_drag_coeffs (apondn,               &
+---
+>       subroutine neutral_drag_coeffs (apnd,     hpnd,     &
+>                                       ipnd,               &
+528c529,531
+<          apondn   ,& ! melt pond fraction of sea ice category
+---
+>          apnd     ,& ! melt pond fraction of sea ice
+>          hpnd     ,& ! mean melt pond depth over sea ice
+>          ipnd     ,& ! mean ice pond depth over sea ice in cat n
+666c669
+<                apond = apond+apondn(n)*aicen(n)
+---
+>                apond = apond+apnd(n)*aicen(n)
+diff -r Icepack/columnphysics/icepack_brine.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_brine.F90
+12,13c12,13
+<       use icepack_parameters, only: min_salin, rhosi
+<       use icepack_parameters, only: l_sk
+---
+>       use icepack_parameters, only: salt_loss, min_salin, rhosi
+>       use icepack_parameters, only: dts_b, l_sk
+31c31,32
+<                 icepack_init_hbrine
+---
+>                 icepack_init_hbrine, &
+>                 icepack_init_zsalinity   ! deprecated
+53c54
+< ! works for tr_salinity
+---
+> ! works for zsalinity and tr_salinity
+682c683
+<       bgrid(:)       = c0 ! biology nondimensional vertical grid points
+---
+>       bgrid(:)       = c0 ! zsalinity grid points
+739a741,770
+> !=======================================================================
+> !autodocument_start icepack_init_zsalinity
+> !  **DEPRECATED**, all code removed
+> !  Interface provided for backwards compatibility
+> 
+>       subroutine icepack_init_zsalinity(Rayleigh_criteria, &
+>                Rayleigh_real, trcrn_bgc, sss)
+> 
+>       logical (kind=log_kind), intent(inout) :: &
+>        Rayleigh_criteria
+> 
+>       real (kind=dbl_kind), intent(inout):: &
+>        Rayleigh_real
+> 
+>       real (kind=dbl_kind), intent(in):: &
+>        sss
+> 
+>       real (kind=dbl_kind), dimension(:,:), intent(inout):: &
+>        trcrn_bgc  ! bgc subset of trcrn
+> 
+> !autodocument_end
+> 
+>       ! local variables
+> 
+>       character(len=*),parameter :: subname='(icepack_init_zsalinity)'
+> 
+>       call icepack_warnings_add(subname//' DEPRECATED, do not use')
+> !      call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+> 
+>       end subroutine icepack_init_zsalinity
+diff -r Icepack/columnphysics/icepack_flux.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_flux.F90
+15c15
+<       use icepack_tracers, only: tr_iso, tr_pond
+---
+>       use icepack_tracers, only: tr_iso
+46,47d45
+<                                fswthrun_uvrdr, fswthrun_uvrdf,&
+<                                fswthrun_pardr, fswthrun_pardf,&
+61,62d58
+<                                fswthru_uvrdr, fswthru_uvrdf,&
+<                                fswthru_pardr, fswthru_pardf,&
+71,76c67
+<                                fiso_evap, fiso_evapn,&
+<                                dpnd_flush,   dpnd_flushn,   &
+<                                dpnd_expon,   dpnd_exponn,   &
+<                                dpnd_freebd,  dpnd_freebdn,  &
+<                                dpnd_initial, dpnd_initialn, &
+<                                dpnd_dlid,    dpnd_dlidn)
+---
+>                                fiso_evap, fiso_evapn)
+78c69
+<       ! concentration is aicen_init in call to subroutine
+---
+>       ! single category fluxes
+82d72
+<       ! single category fluxes
+111,115d100
+<           dpnd_flushn , & ! pond flushing rate due to ice permeability (m/step)
+<           dpnd_exponn , & ! exponential pond drainage rate (m/step)
+<           dpnd_freebdn, & ! pond drainage rate due to freeboard constraint (m/step)
+<           dpnd_initialn,& ! runoff rate due to rfrac (m/step)
+<           dpnd_dlidn  , & ! pond loss/gain due to ice lid (m/step)
+120,123d104
+<           fswthrun_uvrdr, & !   < 400nm uv  dir sw radiation through ice bot (W/m**2)
+<           fswthrun_uvrdf, & !   < 400nm uv  dif sw radiation through ice bot (W/m**2)
+<           fswthrun_pardr, & ! 400-700nm par dir sw radiation through ice bot (W/m**2)
+<           fswthrun_pardf, & ! 400-700nm par dif sw radiation through ice bot (W/m**2)
+153,157d133
+<           dpnd_flush , & ! pond flushing rate due to ice permeability (m/step)
+<           dpnd_expon , & ! exponential pond drainage rate (m/step)
+<           dpnd_freebd, & ! pond drainage rate due to freeboard constraint (m/step)
+<           dpnd_initial,& ! runoff rate due to rfrac (m/step)
+<           dpnd_dlid  , & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+162,165d137
+<           fswthru_uvrdr, & !   < 400nm uv  dir sw radiation through ice bot (W/m**2)
+<           fswthru_uvrdf, & !   < 400nm uv  dif sw radiation through ice bot (W/m**2)
+<           fswthru_pardr, & ! 400-700nm par dir sw radiation through ice bot (W/m**2)
+<           fswthru_pardf, & ! 400-700nm par dif sw radiation through ice bot (W/m**2)
+259,267d230
+<       if (present(fswthrun_uvrdr) .and. present(fswthru_uvrdr)) &
+<          fswthru_uvrdr   = fswthru_uvrdr   + fswthrun_uvrdr  * aicen
+<       if (present(fswthrun_uvrdf) .and. present(fswthru_uvrdf)) &
+<          fswthru_uvrdf   = fswthru_uvrdf   + fswthrun_uvrdf  * aicen
+<       if (present(fswthrun_pardr) .and. present(fswthru_pardr)) &
+<          fswthru_pardr   = fswthru_pardr   + fswthrun_pardr  * aicen
+<       if (present(fswthrun_pardf) .and. present(fswthru_pardf)) &
+<          fswthru_pardf   = fswthru_pardf   + fswthrun_pardf  * aicen
+< 
+287,299d249
+<       ! Meltwater fluxes
+<       if (tr_pond) then
+<          if (present(dpnd_flushn)  .and. present(dpnd_flush))   &
+<             dpnd_flush   = dpnd_flush   + dpnd_flushn   * aicen
+<          if (present(dpnd_exponn)  .and. present(dpnd_expon))   &
+<             dpnd_expon   = dpnd_expon   + dpnd_exponn   * aicen
+<          if (present(dpnd_freebdn) .and. present(dpnd_freebd))  &
+<             dpnd_freebd  = dpnd_freebd  + dpnd_freebdn  * aicen
+<          if (present(dpnd_initialn).and. present(dpnd_initial)) &
+<             dpnd_initial = dpnd_initial + dpnd_initialn * aicen
+<          if (present(dpnd_dlidn)   .and. present(dpnd_dlid))    &
+<             dpnd_dlid    = dpnd_dlid    + dpnd_dlidn    * aicen
+<       endif
+diff -r Icepack/columnphysics/icepack_fsd.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_fsd.F90
+183c183
+<          c_fsd_range         (nfsd), & !
+---
+>          c_fsd_range         (nfsd), & ! 
+622a623
+>                                   dwavefreq,                 &
+642c643,644
+<          wavefreq       ! wave frequencies (s^-1)
+---
+>          wavefreq   , & ! wave frequencies (s^-1)
+>          dwavefreq      ! wave frequency bin widths (s^-1)
+747,748c749,751
+<                      call wave_dep_growth (wave_spectrum, wave_sig_ht, &
+<                                            wavefreq, new_size)
+---
+>                      call wave_dep_growth (wave_spectrum, &
+>                                            wavefreq, dwavefreq, &
+>                                            new_size)
+774,775c777,779
+<                      call wave_dep_growth (wave_spectrum, wave_sig_ht, &
+<                                            wavefreq, new_size)
+---
+>                      call wave_dep_growth (wave_spectrum, &
+>                                            wavefreq, dwavefreq, &
+>                                            new_size)
+815,816c819,821
+<       subroutine wave_dep_growth (local_wave_spec, wave_height, &
+<                                   wavefreq, new_size)
+---
+>       subroutine wave_dep_growth (local_wave_spec, &
+>                                   wavefreq, dwavefreq, &
+>                                   new_size)
+824,827c829,830
+<          wavefreq        ! wave frequencies (s^-1)
+< 
+<       real(kind=dbl_kind), intent(in) :: &
+<          wave_height     ! significant wave height (m)
+---
+>          wavefreq,     & ! wave frequencies (s^-1)
+>          dwavefreq       ! wave frequency bin widths (s^-1)
+844c847
+<       w_amp = p5 * wave_height  ! amplitude is 1/2 sig wave height
+---
+>       w_amp = c2* SQRT(SUM(local_wave_spec*dwavefreq))   ! sig wave amplitude
+diff -r Icepack/columnphysics/icepack_intfc.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_intfc.F90
+2c2
+< ! Copyright 1998-2026 Triad National Security, LLC
+---
+> ! Copyright (c) 2024, Triad National Security, LLC
+5,14c5,14
+< ! This program was produced under U.S. Government contract 89233218CNA000001
+< ! for Los Alamos National Laboratory (LANL), which is operated by Triad
+< ! National Security, LLC for the U.S. Department of Energy/National Nuclear
+< ! Security Administration. All rights in the program are reserved by Triad
+< ! National Security, LLC, and the U.S. Department of Energy/National Nuclear
+< ! Security Administration. The Government is granted for itself and others
+< ! acting on its behalf a nonexclusive, paid-up, irrevocable worldwide
+< ! license in this material to reproduce, prepare. derivative works,
+< ! distribute copies to the public, perform publicly and display publicly,
+< ! and to permit others to do so.
+---
+> ! Copyright 2024. Triad National Security, LLC. This software was
+> ! produced under U.S. Government contract DE-AC52-06NA25396 for Los
+> ! Alamos National Laboratory (LANL), which is operated by Triad
+> ! National Security, LLC for the U.S. Department of Energy. The U.S.
+> ! Government has rights to use, reproduce, and distribute this software.
+> ! NEITHER THE GOVERNMENT NOR TRIAD NATIONAL SECURITY, LLC MAKES ANY
+> ! WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF
+> ! THIS SOFTWARE. If software is modified to produce derivative works,
+> ! such modified software should be clearly marked, so as not to confuse
+> ! it with the version available from LANL.
+94a95
+>       use icepack_brine, only: icepack_init_zsalinity    ! deprecated
+diff -r Icepack/columnphysics/icepack_itd.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_itd.F90
+35d34
+<       use icepack_tracers,    only: tr_pond, tr_pond_lvl, nt_alvl
+38c37
+<       use icepack_parameters, only: skl_bgc, z_tracers, hi_min, itd_area_min, itd_mass_min
+---
+>       use icepack_parameters, only: skl_bgc, z_tracers, hi_min
+299,300c298
+<                               aicen_init,vicen_init, &
+<                               dpnd_melt, trcrn)
+---
+>                               aicen_init,vicen_init)
+307,308c305
+<          vicen     , & ! volume per unit area of ice          (m)
+<          dpnd_melt     ! pond 'drainage' due to ice melting (m / step)
+---
+>          vicen         ! volume per unit area of ice          (m)
+314,316d310
+<       real (kind=dbl_kind), dimension (:,:), intent(in) :: &
+<          trcrn     ! ice tracers
+< 
+322,323c316
+<          dhi       , & ! hi1 - hi0
+<          da            ! total change in area complete within this subroutine
+---
+>          dhi           ! hi1 - hi0
+327,328d319
+<             da = aicen ! store value of aicen at start of the subroutine
+< 
+351,359d341
+<             da = da - aicen ! -1*change in fractional area over the subroutine
+<             if (tr_pond) then
+<                if (tr_pond_lvl) then
+<                   dpnd_melt = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)*trcrn(nt_alvl,1)
+<                else
+<                   dpnd_melt = da*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
+<                endif
+<             endif
+< 
+436a419
+>       real (kind=dbl_kind), dimension(ncat) :: vicen_init
+445a429
+>       vicen_init(:) = vicen(:)
+1077,1080d1060
+<       logical (kind=log_kind) :: &
+<          zap_residual, &
+<          zap_category(ncat)
+< 
+1089,1104d1068
+<       ! Flag categories with very small areas and residual ice
+<       !-----------------------------------------------------------------
+< 
+<       zap_category(:) = .false.
+<       do n = 1, ncat
+<          if ( abs(aicen(n)) <= puny .and. &
+<              (abs(aicen(n)) /= c0 .or. abs(vicen(n)) /= c0 .or. abs(vsnon(n)) /= c0)) then
+<             zap_category(n) = .true.
+<          endif
+<       enddo
+< 
+<       zap_residual = .false.
+<       if (aice      < max(itd_area_min, puny) .or. &
+<           aice*rhoi < max(itd_mass_min, puny)) zap_residual = .true. ! all categories
+< 
+<       !-----------------------------------------------------------------
+1118c1082,1083
+<          elseif (zap_category(n) .or. zap_residual) then
+---
+>          elseif (abs(aicen(n)) /= c0 .and. &
+>                  abs(aicen(n)) <= puny) then
+diff -r Icepack/columnphysics/icepack_mechred.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_mechred.F90
+45,46c45
+<       use icepack_tracers, only: tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
+<       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
+---
+>       use icepack_tracers, only: tr_pond_topo, tr_aero, tr_iso, tr_brine, ntrcr, nbtrcr
+112c111
+<                             closing,     dpnd_ridge)
+---
+>                             closing )
+169,170c168
+<          fhocn      , & ! net heat flux to ocean (W/m^2)
+<          dpnd_ridge     ! pond drainage due to ridging (m avg. over cell)
+---
+>          fhocn          ! net heat flux to ocean (W/m^2)
+207,208c205
+<          mpond      , & ! thickness of pond water (avg. over grid cell) lost
+<                         ! due to ridging (m)
+---
+>          mpond      , & ! mass of pond added to ocean (kg m-2)
+269c266,270
+<       character(len=*),parameter :: subname='(ridge_ice)'
+---
+>       character(len=*), parameter :: subname='(ridge_ice)'
+> 
+>       ! local variable
+> 
+>        real (kind=dbl_kind) :: asum_in
+294a296
+>       asum_in = asum
+435a438
+> 
+443c446,447
+<             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+---
+>             write(*,*) 'ridge_ice: asum_in, asum, rdg_conv, shear = ', asum_in, asum, rdg_conv, rdg_shear
+>             !call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+608d611
+<       ! diagnostic for all non-topo pond schemes, which are virtual
+612d614
+<       if (present(dpnd_ridge)) dpnd_ridge = mpond
+666c668
+<       character(len=*),parameter :: subname='(asum_ridging)'
+---
+>       character(len=*), parameter :: subname='(asum_ridging)'
+1151,1152c1153
+<          mpond          ! thickness of pond water, averaged over entire grid
+<                         ! cell area, lost to ridging (m)
+---
+>          mpond          ! mass of pond added to ocean (kg m-2)
+1398,1403c1399
+<             ! diagnostic for all non-topo pond schemes, which are virtual
+<             if (tr_pond_lvl) then
+<                mpond = mpond + ardg1n * trcrn(nt_apnd,n) &
+<                                       * trcrn(nt_hpnd,n) &
+<                                       * trcrn(nt_alvl,n)
+<             elseif (tr_pond_topo .or. tr_pond_sealvl) then
+---
+>             if (tr_pond_topo) then
+1753c1749
+<                                     first_ice,                   &
+---
+>                                     first_ice,    fzsal,         &
+1755c1751
+<                                     Tf,           dpnd_ridge,    &
+---
+>                                     Tf,                          &
+1795a1792,1794
+>          fzsal        ! zsalinity flux to ocean(kg/m^2/s) (deprecated)
+> 
+>       real (kind=dbl_kind), intent(inout), optional :: &
+1828,1830d1826
+<       real (kind=dbl_kind), intent(inout), optional :: &
+<          dpnd_ridge   ! pond drainage due to ridging
+< 
+1907c1903
+<                       closing,      dpnd_ridge )
+---
+>                       closing )
+diff -r Icepack/columnphysics/icepack_meltpond_lvl.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_meltpond_lvl.F90
+45,49c45
+<                                    meltsliqn,            &
+<                                    dpnd_freebdn,         &
+<                                    dpnd_initialn,        &
+<                                    dpnd_dlidn,           &
+<                                    dpnd_flushn)
+---
+>                                    meltsliqn)
+69,73c65
+<          apnd, hpnd, ipnd, &
+<          dpnd_freebdn,  & ! pond drainage rate due to freeboard constraint (m/step)
+<          dpnd_initialn, & ! runoff rate due to rfrac (m/step)
+<          dpnd_dlidn,    & ! pond loss/gain due to ice lid (m/step)
+<          dpnd_flushn      ! pond flushing rate due to ice permeability (m/s)
+---
+>          apnd, hpnd, ipnd
+88,90c80
+<          volpn, &     ! pond volume per unit area (m)
+<          hpond_tmp, & ! local variable for hpond before flushing
+<          dvn_temp     ! local variable for change in volume due to rfrac
+---
+>          volpn     ! pond volume per unit area (m)
+162,168d151
+<             ! Track meltwater runoff fraction. Here dvn is volume of
+<             ! meltwater (m3/m2) captured over entire grid cell area.
+<             ! Multiply by (1-rfrac)/rfrac to get loss over entire area.
+<             ! Divide by aicen to get loss per unit category area
+<             ! (for consistency with melttn, dpnd_freebdn, etc)
+<             dpnd_initialn = dvn * (c1-rfrac) / (rfrac * aicen)
+<             dvn_temp = dvn
+208,210d190
+<             ! Track lost/gained meltwater per unit category area from pond
+<             ! lid freezing/melting. Note sign flip relative to dvn convention
+<             dpnd_dlidn = (dvn_temp - dvn) / aicen
+229c209
+<                hpondn = pndaspect * apondn ! Possible loss of meltwater if apondn == alvl_tmp
+---
+>                hpondn = pndaspect * apondn
+233c213
+<                hpondn = c0 ! Loss of meltwater for very deformed ice
+---
+>                hpondn = c0
+238d217
+<             hpond_tmp = hpondn
+240d218
+<             dpnd_freebdn = (hpond_tmp - hpondn) * apondn
+246,247d223
+<             ! note, this implies that if ponds fully drain or freeze their
+<             ! depressions cease to exist and the lid ice also ceases to exist
+277d252
+<                dpnd_flushn = -dvn/aicen
+Only in Icepack/columnphysics/: icepack_meltpond_sealvl.F90
+diff -r Icepack/columnphysics/icepack_orbital.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_orbital.F90
+175c175
+<          calendar_type       ! differentiates proleptic_gregorian from other calendars
+---
+>          calendar_type       ! differentiates Gregorian from other calendars
+199,200c199
+<       if (calendar_type == "GREGORIAN" .or. &
+<           calendar_type == "proleptic_gregorian") then
+---
+>       if (calendar_type == "GREGORIAN") then
+diff -r Icepack/columnphysics/icepack_parameters.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_parameters.F90
+128a129
+>          salt_loss = 0.4_dbl_kind     ,&! fraction of salt retained in zsalinity
+130a132
+>          dts_b     = 50._dbl_kind     ,&! zsalinity timestep
+156,157d157
+<          semi_implicit_Tsfc = .false.    ,&! surface temperature coupling option
+<          vapor_flux_correction = .false. ,&! compute mass/enthalpy correction for evaporation/sublimation
+158a159
+>          solve_zsal   = .false. ,&! if true, update salinity profile from solve_S_dt
+238,243d238
+<       ! Parameters for the impact of pond depth on shortwave
+<       real (kind=dbl_kind), public :: &
+<          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
+<          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
+< 
+< 
+257,264c252,257
+<          itd_area_min = 1.e-11_dbl_kind     ,&! zap residual ice below a minimum area
+<          itd_mass_min = 1.e-10_dbl_kind     ,&! zap residual ice below a minimum mass
+<          Cf       = 17._dbl_kind            ,&! ratio of ridging work to PE change in ridging
+<          Pstar    = 2.75e4_dbl_kind         ,&! constant in Hibler strength formula
+<                                               ! (kstrength = 0)
+<          Cstar    = 20._dbl_kind            ,&! constant in Hibler strength formula
+<                                               ! (kstrength = 0)
+<          dragio   = 0.00536_dbl_kind        ,&! ice-ocn drag coefficient
+---
+>          Cf       = 17._dbl_kind     ,&! ratio of ridging work to PE change in ridging
+>          Pstar    = 2.75e4_dbl_kind  ,&! constant in Hibler strength formula
+>                                        ! (kstrength = 0)
+>          Cstar    = 20._dbl_kind     ,&! constant in Hibler strength formula
+>                                        ! (kstrength = 0)
+>          dragio   = 0.00536_dbl_kind ,&! ice-ocn drag coefficient
+266,269c259,262
+<          iceruf_ocn = 0.03_dbl_kind         ,&! under-ice roughness (m)
+<          gravit   = 9.80616_dbl_kind        ,&! gravitational acceleration (m/s^2)
+<          mu_rdg = 3.0_dbl_kind                ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
+<                                               ! (krdg_redist = 1)
+---
+>          iceruf_ocn = 0.03_dbl_kind  ,&! under-ice roughness (m)
+>          gravit   = 9.80616_dbl_kind ,&! gravitational acceleration (m/s^2)
+>          mu_rdg = 3.0_dbl_kind ! e-folding scale of ridged ice, krdg_partic=1 (m^0.5)
+>                                        ! (krdg_redist = 1)
+335,336c328
+<          wave_spec_type = 'constant' , &    ! 'none', 'constant', or 'random'
+<          wave_height_type = 'internal'      ! 'none', 'internal', 'coupled'
+---
+>          wave_spec_type = 'constant'  ! 'none', 'constant', or 'random'
+343,350c335
+<          hs0       = 0.03_dbl_kind, & ! snow depth for transition to bare sea ice (m)
+<          hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
+< 
+<       real (kind=dbl_kind), public :: &
+<          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
+<          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
+<          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
+<          pndaspect = 0.8_dbl_kind     ! ratio of pond depth to area fraction
+---
+>          hs0       = 0.03_dbl_kind    ! snow depth for transition to bare sea ice (m)
+351a337
+>       ! level-ice ponds
+355d340
+<       ! sealvl ponds
+357,363c342,346
+<          apnd_sl   = 0.27_dbl_kind    ! equilibrium pond fraction for sea level parameterization
+< 
+<       character (len=char_len), public :: &
+<          pndhyps   = 'sealevel' , &   ! pond hypsometry option
+<          pndfrbd   = 'floor'    , &   ! over what domain to calculate freeboard constraint
+<          pndhead   = 'perched'  , &   ! geometry for computing pond pressure head
+<          pndmacr   = 'lambda'         ! driving force for macro-flaw pond drainage
+---
+>          dpscale   = 0.001_dbl_kind,& ! alter e-folding time scale for flushing (ktherm=1)
+>          rfracmin  = 0.15_dbl_kind, & ! minimum retained fraction of meltwater
+>          rfracmax  = 0.85_dbl_kind, & ! maximum retained fraction of meltwater
+>          pndaspect = 0.8_dbl_kind, &  ! ratio of pond depth to area fraction
+>          hs1       = 0.03_dbl_kind    ! snow depth for transition to bare pond ice (m)
+389c372
+<          snwlvlfac  =    0.3_dbl_kind, & ! fractional increase in snow
+---
+>          snwlvlfac  =    0.3_dbl_kind    ! fractional increase in snow
+391,396d373
+<          snw_growth_wet = 4.22e5_dbl_kind, & ! wet metamorphism parameter (um^3/s)
+<                                          ! 1.e18 * 4.22e-13 (Oleson 2010)
+<          drsnw_min  =    0.0_dbl_kind, & ! minimum snow grain growth factor
+<          snwliq_max =    0.033_dbl_kind  ! irreducible saturation fraction
+<                                          ! 0.033 (Anderson 1976)
+<                                          ! 0.09 to 0.1  (Denoth et al, 1979 & Brun 1989)
+436c413,415
+<          l_sk         = 2.0_dbl_kind    , & ! characteristic diffusive scale brine (m)
+---
+>          l_sk         = 2.0_dbl_kind    , & ! characteristic diffusive scale (m)
+>          grid_oS      = c0              , & ! for bottom flux
+>          l_skS        = 0.028_dbl_kind  , & ! characteristic skeletal layer thickness (m) (zsalinity)
+577c556
+<          kice_in, ksno_in, itd_area_min_in, itd_mass_min_in, &
+---
+>          kice_in, ksno_in, &
+579c558,559
+<          saltmax_in, phi_init_in, min_salin_in, Tliquidus_max_in, &
+---
+>          saltmax_in, phi_init_in, min_salin_in, salt_loss_in, &
+>          Tliquidus_max_in, &
+583c563
+<          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, &
+---
+>          ktherm_in, conduct_in, fbot_xfer_type_in, calc_Tsfc_in, dts_b_in, &
+585c565
+<          cpl_frazil_in, semi_implicit_Tsfc_in, vapor_flux_correction_in, &
+---
+>          cpl_frazil_in, &
+595,596c575,576
+<          apnd_sl_in, saltflux_option_in, congel_freeze_in, &
+<          floeshape_in, wave_spec_in, wave_spec_type_in, wave_height_type_in, nfreq_in, &
+---
+>          saltflux_option_in, congel_freeze_in, &
+>          floeshape_in, wave_spec_in, wave_spec_type_in, nfreq_in, &
+600c580,581
+<          grid_o_in, l_sk_in, initbio_frac_in, dEdd_algae_in, &
+---
+>          solve_zsal_in, grid_o_in, l_sk_in, &
+>          initbio_frac_in, grid_oS_in, l_skS_in,  dEdd_algae_in, &
+609d589
+<          snw_growth_wet_in, drsnw_min_in, snwliq_max_in, &
+700a681
+>          salt_loss_in,  & ! fraction of salt retained in zsalinity
+719,721d699
+<          semi_implicit_Tsfc_in   , &! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
+<          vapor_flux_correction_in, &! compute mass/enthalpy correction when evaporation/sublimation
+<                             ! computed outside at 0C
+724a703
+>          dts_b_in,   &      ! zsalinity timestep
+807,812c786,789
+<          itd_area_min_in,         & ! zap residual ice below this minimum area
+<          itd_mass_min_in,         & ! zap residual ice below this minimum mass
+<          Cf_in,                   & ! ratio of ridging work to PE change in ridging
+<          Pstar_in,                & ! constant in Hibler strength formula
+<          Cstar_in,                & ! constant in Hibler strength formula
+<          dragio_in,               & ! ice-ocn drag coefficient
+---
+>          Cf_in,         & ! ratio of ridging work to PE change in ridging
+>          Pstar_in,      & ! constant in Hibler strength formula
+>          Cstar_in,      & ! constant in Hibler strength formula
+>          dragio_in,     & ! ice-ocn drag coefficient
+814,816c791,793
+<          iceruf_ocn_in,           & ! under-ice roughness (m)
+<          gravit_in,               & ! gravitational acceleration (m/s^2)
+<          iceruf_in                  ! ice surface roughness (m)
+---
+>          iceruf_ocn_in, & ! under-ice roughness (m)
+>          gravit_in,     & ! gravitational acceleration (m/s^2)
+>          iceruf_in        ! ice surface roughness (m)
+888,889c865
+<          wave_spec_type_in,   & ! type of wave spectrum forcing
+<          wave_height_type_in    ! type of wave height forcing
+---
+>          wave_spec_type_in  ! type of wave spectrum forcing
+912c888,889
+<          skl_bgc_in         ! if true, solve skeletal biochemistry
+---
+>          skl_bgc_in,        &   ! if true, solve skeletal biochemistry
+>          solve_zsal_in          ! if true, update salinity profile from solve_S_dt
+916c893
+<          l_sk_in        , & ! characteristic diffusive scale (m)
+---
+>          l_sk_in        , & ! characteristic diffusive scale (zsalinity) (m)
+921a899,902
+>          grid_oS_in     , & ! for bottom flux (zsalinity)
+>          l_skS_in           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
+> 
+>       real (kind=dbl_kind), intent(in), optional :: &
+1054c1035
+<       ! level-ice and sealvl ponds
+---
+>       ! level-ice ponds
+1065,1068d1045
+<       ! sealvl ponds
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          apnd_sl_in         ! equilibrium pond fraction for sea level parameterization
+< 
+1093,1096c1070
+<          snwlvlfac_in, &    ! fractional increase in snow depth
+<          snw_growth_wet_in,&! wet metamorphism parameter (um^3/s)
+<          drsnw_min_in, &    ! minimum snow grain growth factor
+<          snwliq_max_in      ! irreducible saturation fraction
+---
+>          snwlvlfac_in       ! fractional increase in snow depth
+1161,1162d1134
+<       if (present(itd_area_min_in)      ) itd_area_min     = itd_area_min_in
+<       if (present(itd_mass_min_in)      ) itd_mass_min     = itd_mass_min_in
+1176a1149
+>       if (present(salt_loss_in)         ) salt_loss        = salt_loss_in
+1196,1197d1168
+<       if (present(semi_implicit_Tsfc_in)) semi_implicit_Tsfc= semi_implicit_Tsfc_in
+<       if (present(vapor_flux_correction_in)) vapor_flux_correction= vapor_flux_correction_in
+1199a1171
+>       if (present(dts_b_in)             ) dts_b            = dts_b_in
+1240d1211
+<       if (present(wave_height_type_in)  ) wave_height_type = wave_height_type_in
+1248d1218
+<       if (present(apnd_sl_in)           ) apnd_sl          = apnd_sl_in
+1263,1265d1232
+<       if (present(snw_growth_wet_in)    ) snw_growth_wet   = snw_growth_wet_in
+<       if (present(drsnw_min_in)         ) drsnw_min        = drsnw_min_in
+<       if (present(snwliq_max_in)        ) snwliq_max       = snwliq_max_in
+1397a1365,1370
+>       if (present(solve_zsal_in)) then
+>          call icepack_warnings_add(subname//' WARNING: zsalinity is deprecated')
+>          if (solve_zsal_in) then
+>             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+>          endif
+>       endif
+1402a1376,1377
+>       if (present(grid_oS_in)           ) grid_oS          = grid_oS_in
+>       if (present(l_skS_in)             ) l_skS            = l_skS_in
+1592c1567
+<          kice_out, ksno_out, itd_area_min_out, itd_mass_min_out, &
+---
+>          kice_out, ksno_out, &
+1594c1569,1570
+<          saltmax_out, phi_init_out, min_salin_out, Tliquidus_max_out, &
+---
+>          saltmax_out, phi_init_out, min_salin_out, salt_loss_out, &
+>          Tliquidus_max_out, &
+1599c1575
+<          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, &
+---
+>          ktherm_out, conduct_out, fbot_xfer_type_out, calc_Tsfc_out, dts_b_out, &
+1601,1602c1577,1578
+<          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, semi_implicit_Tsfc_out, &
+<          albedo_type_out, albicev_out, albicei_out, albsnowv_out, vapor_flux_correction_out, &
+---
+>          phi_c_slow_mode_out, phi_i_mushy_out, shortwave_out, &
+>          albedo_type_out, albicev_out, albicei_out, albsnowv_out, &
+1609,1610c1585,1586
+<          apnd_sl_out, saltflux_option_out, congel_freeze_out, &
+<          floeshape_out, wave_spec_out, wave_spec_type_out, wave_height_type_out, nfreq_out, &
+---
+>          saltflux_option_out, congel_freeze_out, &
+>          floeshape_out, wave_spec_out, wave_spec_type_out, nfreq_out, &
+1614c1590,1591
+<          skl_bgc_out, grid_o_out, l_sk_out, initbio_frac_out, &
+---
+>          skl_bgc_out, solve_zsal_out, grid_o_out, l_sk_out, &
+>          initbio_frac_out, grid_oS_out, l_skS_out, &
+1623d1599
+<          snw_growth_wet_out, drsnw_min_out, snwliq_max_out, &
+1722a1699
+>          salt_loss_out,  & ! fraction of salt retained in zsalinity
+1741,1743d1717
+<          semi_implicit_Tsfc_out    ,&! compute dfsurf/dT, dflat/dT terms instead of fsurf, flat
+<          vapor_flux_correction_out ,&! compute mass/enthalpy correction when evaporation/sublimation
+<                             ! computed outside at 0C
+1746a1721
+>          dts_b_out,   &      ! zsalinity timestep
+1831,1836c1806,1809
+<          itd_area_min_out,         & ! zap residual ice below this minimum area
+<          itd_mass_min_out,         & ! zap residual ice below this minimum mass
+<          Cf_out,                   & ! ratio of ridging work to PE change in ridging
+<          Pstar_out,                & ! constant in Hibler strength formula
+<          Cstar_out,                & ! constant in Hibler strength formula
+<          dragio_out,               & ! ice-ocn drag coefficient
+---
+>          Cf_out,         & ! ratio of ridging work to PE change in ridging
+>          Pstar_out,      & ! constant in Hibler strength formula
+>          Cstar_out,      & ! constant in Hibler strength formula
+>          dragio_out,     & ! ice-ocn drag coefficient
+1838,1840c1811,1813
+<          iceruf_ocn_out,           & ! under-ice roughness (m)
+<          gravit_out,               & ! gravitational acceleration (m/s^2)
+<          iceruf_out                  ! ice surface roughness (m)
+---
+>          iceruf_ocn_out, & ! under-ice roughness (m)
+>          gravit_out,     & ! gravitational acceleration (m/s^2)
+>          iceruf_out        ! ice surface roughness (m)
+1912,1913c1885
+<          wave_spec_type_out,   & !type of wave spectrum forcing
+<          wave_height_type_out    ! type of wave height forcing
+---
+>          wave_spec_type_out ! type of wave spectrum forcing
+1936c1908,1909
+<          skl_bgc_out         ! if true, solve skeletal biochemistry
+---
+>          skl_bgc_out,        &   ! if true, solve skeletal biochemistry
+>          solve_zsal_out          ! if true, update salinity profile from solve_S_dt
+1940c1913
+<          l_sk_out        , & ! characteristic diffusive scale (m)
+---
+>          l_sk_out        , & ! characteristic diffusive scale (zsalinity) (m)
+1945a1919,1922
+>          grid_oS_out     , & ! for bottom flux (zsalinity)
+>          l_skS_out           ! 0.02 characteristic skeletal layer thickness (m) (zsalinity)
+> 
+>       real (kind=dbl_kind), intent(out), optional :: &
+2078c2055
+<       ! level-ice and sealvl ponds
+---
+>       ! level-ice ponds
+2089,2092d2065
+<       ! sealvl ponds
+<       real (kind=dbl_kind), intent(out), optional :: &
+<          apnd_sl_out         ! equilibrium pond fraction for sea level parameterization
+< 
+2117,2120c2090
+<          snwlvlfac_out,  &   ! fractional increase in snow depth
+<          snw_growth_wet_out,&! wet metamorphism parameter (um^3/s)
+<          drsnw_min_out, &    ! minimum snow grain growth factor
+<          snwliq_max_out      ! irreducible saturation fraction
+---
+>          snwlvlfac_out       ! fractional increase in snow depth
+2218,2219d2187
+<       if (present(itd_area_min_out)      ) itd_area_min_out = itd_area_min
+<       if (present(itd_mass_min_out)      ) itd_mass_min_out = itd_mass_min
+2232a2201
+>       if (present(salt_loss_out)         ) salt_loss_out    = salt_loss
+2252,2253d2220
+<       if (present(semi_implicit_Tsfc_out)) semi_implicit_Tsfc_out= semi_implicit_Tsfc
+<       if (present(vapor_flux_correction_out)) vapor_flux_correction_out= vapor_flux_correction
+2255a2223
+>       if (present(dts_b_out)             ) dts_b_out        = dts_b
+2296d2263
+<       if (present(wave_height_type_out)  ) wave_height_type_out = wave_height_type
+2304d2270
+<       if (present(apnd_sl_out)           ) apnd_sl_out      = apnd_sl
+2319,2321d2284
+<       if (present(snw_growth_wet_out)    ) snw_growth_wet_out = snw_growth_wet
+<       if (present(drsnw_min_out)         ) drsnw_min_out    = drsnw_min
+<       if (present(snwliq_max_out)        ) snwliq_max_out   = snwliq_max
+2342a2306
+>       if (present(solve_zsal_out)        ) solve_zsal_out   = solve_zsal
+2346a2311,2312
+>       if (present(grid_oS_out)           ) grid_oS_out      = grid_oS
+>       if (present(l_skS_out)             ) l_skS_out        = l_skS
+2520,2521d2485
+<         write(iounit,*) "  itd_area_min = ",itd_area_min
+<         write(iounit,*) "  itd_mass_min = ",itd_mass_min
+2535a2500
+>         write(iounit,*) "  salt_loss  = ",salt_loss
+2566,2567d2530
+<         write(iounit,*) "  semi_implicit_Tsfc = ", semi_implicit_Tsfc
+<         write(iounit,*) "  vapor_flux_correction = ", vapor_flux_correction
+2569a2533
+>         write(iounit,*) "  dts_b      = ", dts_b
+2610d2573
+<         write(iounit,*) "  wave_height_type = ", trim(wave_height_type)
+2618d2580
+<         write(iounit,*) "  apnd_sl    = ", apnd_sl
+2633,2635d2594
+<         write(iounit,*) "  snw_growth_wet = ", snw_growth_wet
+<         write(iounit,*) "  drsnw_min  = ", drsnw_min
+<         write(iounit,*) "  snwliq_max = ", snwliq_max
+2656a2616
+>         write(iounit,*) "  solve_zsal = ", solve_zsal
+2661a2622,2623
+>         write(iounit,*) "  grid_oS    = ", grid_oS
+>         write(iounit,*) "  l_skS      = ", l_skS
+diff -r Icepack/columnphysics/icepack_shortwave.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_shortwave.F90
+54c54
+<       use icepack_parameters, only: snw_ssp_table, modal_aero, semi_implicit_Tsfc
+---
+>       use icepack_parameters, only: snw_ssp_table, modal_aero
+56d55
+<       use icepack_parameters, only: hpmin, hp0
+60,61c59
+<       use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
+<       use icepack_tracers,    only: tr_lvl
+---
+>       use icepack_tracers,    only: tr_pond_lvl, tr_pond_topo
+119a118,121
+>          hpmin  = 0.005_dbl_kind, & ! minimum allowed melt pond depth (m)
+>          hp0    = 0.200_dbl_kind    ! pond depth below which transition to bare ice
+> 
+>       real (kind=dbl_kind), parameter :: &
+224,225d225
+<                                   swuvrdr,  swuvrdf,  &
+<                                   swpardr,  swpardf,  &
+231,234d230
+<                                   fswthrun_uvrdr,     &
+<                                   fswthrun_uvrdf,     &
+<                                   fswthrun_pardr,     &
+<                                   fswthrun_pardf,     &
+252,257d247
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr  , & ! sw down, ultraviolet, direct (W/m^2)
+<          swuvrdf  , & ! sw down, ultraviolet, diffuse (W/m^2)
+<          swpardr  , & ! sw down, PAR, direct (W/m^2)
+<          swpardf      ! sw down, PAR, diffuse (W/m^2)
+< 
+284,288c274
+<          fswthrun_idf, & ! nir dif SW through ice to ocean (W m-2)
+<          fswthrun_uvrdr,&! uv  dir SW through ice to ocean (W m-2)
+<          fswthrun_uvrdf,&! uv  dif SW through ice to ocean (W m-2)
+<          fswthrun_pardr,&! par dir SW through ice to ocean (W m-2)
+<          fswthrun_pardf  ! par dif SW through ice to ocean (W m-2)
+---
+>          fswthrun_idf    ! nir dif SW through ice to ocean (W m-2)
+320,324c306,307
+<          l_fswthru_idf, & ! nir dif SW through ice to ocean (W m-2)
+<          l_fswthru_uvrdr,&! uv  dir SW through ice to ocean (W m-2)
+<          l_fswthru_uvrdf,&! uv  dif SW through ice to ocean (W m-2)
+<          l_fswthru_pardr,&! par dir SW through ice to ocean (W m-2)
+<          l_fswthru_pardf  ! par dif SW through ice to ocean (W m-2)
+---
+>          l_fswthru_idf    ! nir dif SW through ice to ocean (W m-2)
+> 
+427,430d409
+<                                swuvrdr=swuvrdr,      &
+<                                swuvrdf=swuvrdf,      &
+<                                swpardr=swpardr,      &
+<                                swpardf=swpardf,      &
+438,441d416
+<                                fswthru_uvrdr=l_fswthru_uvrdr,&
+<                                fswthru_uvrdf=l_fswthru_uvrdf,&
+<                                fswthru_pardr=l_fswthru_pardr,&
+<                                fswthru_pardf=l_fswthru_pardf,&
+451,454d425
+<          if (present(fswthrun_uvrdr)) fswthrun_uvrdr(n) = l_fswthru_uvrdr
+<          if (present(fswthrun_uvrdf)) fswthrun_uvrdf(n) = l_fswthru_uvrdf
+<          if (present(fswthrun_pardr)) fswthrun_pardr(n) = l_fswthru_pardr
+<          if (present(fswthrun_pardf)) fswthrun_pardf(n) = l_fswthru_pardf
+709,710d679
+<                                  swuvrdr,  swuvrdf,  &
+<                                  swpardr,  swpardf,  &
+717,720d685
+<                                  fswthru_uvrdr,      &
+<                                  fswthru_uvrdf,      &
+<                                  fswthru_pardr,      &
+<                                  fswthru_pardf,      &
+741,746d705
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr     , & ! sw down, uv  dir (W/m^2)
+<          swuvrdf     , & ! sw down, uv  dif (W/m^2)
+<          swpardr     , & ! sw down, par dir (W/m^2)
+<          swpardf         ! sw down, par dif (W/m^2)
+< 
+756,760c715
+<          fswthru_idf  , & ! nir dif SW through ice to ocean (W m-2)
+<          fswthru_uvrdr, & ! uv  dir SW through ice to ocean (W m-2)
+<          fswthru_uvrdf, & ! uv  dif SW through ice to ocean (W m-2)
+<          fswthru_pardr, & ! par dir SW through ice to ocean (W m-2)
+<          fswthru_pardf    ! par dif SW through ice to ocean (W m-2)
+---
+>          fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
+790,795d744
+<       real (kind=dbl_kind) :: &
+<          swuvrdrpen  , & ! penetrating SW, uv  dir (W/m^2)
+<          swuvrdfpen  , & ! penetrating SW, uv  dif (W/m^2)
+<          swpardrpen  , & ! penetrating SW, par dir (W/m^2)
+<          swpardfpen      ! penetrating SW, par dif (W/m^2)
+< 
+804,807d752
+<          swuvrdrpen = c0
+<          swuvrdfpen = c0
+<          swpardrpen = c0
+<          swpardfpen = c0
+847,851d791
+<          if (present(swuvrdr)) swuvrdrpen = swuvrdr * (c1-alvdrni) * (c1-asnow) * i0vis
+<          if (present(swuvrdf)) swuvrdfpen = swuvrdf * (c1-alvdfni) * (c1-asnow) * i0vis
+<          if (present(swpardr)) swpardrpen = swpardr * (c1-alvdrni) * (c1-asnow) * i0vis
+<          if (present(swpardf)) swpardfpen = swpardf * (c1-alvdfni) * (c1-asnow) * i0vis
+< 
+888,891d827
+<          fswthru_uvrdr = swuvrdrpen * tranbot
+<          fswthru_uvrdf = swuvrdfpen * tranbot
+<          fswthru_pardr = swpardrpen * tranbot
+<          fswthru_pardf = swpardfpen * tranbot
+908d843
+< ! 2024 DCS refactored for sealvl ponds
+928,929d862
+<                           swuvrdr,  swuvrdf,   &
+<                           swpardr,  swpardf,   &
+935,938d867
+<                           fswthrun_uvrdr,      &
+<                           fswthrun_uvrdf,      &
+<                           fswthrun_pardr,      &
+<                           fswthrun_pardf,      &
+956c885
+<          calendar_type       ! differentiates proleptic_gregorian from other calendars
+---
+>          calendar_type       ! differentiates Gregorian from other calendars
+974,979d902
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr, & ! sw down, uv  dir (W/m^2)
+<          swuvrdf, & ! sw down, uv  dif (W/m^2)
+<          swpardr, & ! sw down, par dir (W/m^2)
+<          swpardf    ! sw down, par dif (W/m^2)
+< 
+988,989c911
+<          ipndn, & ! pond refrozen lid thickness (m)
+<          ffracn   ! fraction of fsurfn used to melt ipond
+---
+>          ipndn    ! pond refrozen lid thickness (m)
+995a918
+>          ffracn,   & ! fraction of fsurfn used to melt ipond
+1019,1023c942
+<          fswthrun_idf, & ! nir dif SW through ice to ocean (W/m^2)
+<          fswthrun_uvrdr,&! uv  dir SW through ice to ocean (W/m^2)
+<          fswthrun_uvrdf,&! uv  dif SW through ice to ocean (W/m^2)
+<          fswthrun_pardr,&! par dir SW through ice to ocean (W/m^2)
+<          fswthrun_pardf  ! par dif SW through ice to ocean (W/m^2)
+---
+>          fswthrun_idf    ! nir dif SW through ice to ocean (W/m^2)
+1043c962,965
+<          hsn             ! snow depth (m)
+---
+>          hsn         , & ! snow depth (m)
+>          hsnlvl      , & ! snow depth over level ice (m)
+>          vsn         , & ! snow volume
+>          alvl            ! area fraction of level ice
+1051d972
+<          apondn      , & ! pond fraction of category (incl. deformed)
+1058a980,990
+>       real (kind=dbl_kind) :: &
+>          ipn         , & ! refrozen pond ice thickness (m), mean over ice fraction
+>          hp          , & ! pond depth
+>          hs          , & ! snow depth
+>          asnow       , & ! fractional area of snow cover
+>          rp          , & ! volume fraction of retained melt water to total liquid content
+>          hmx         , & ! maximum available snow infiltration equivalent depth
+>          dhs         , & ! local difference in snow depth on sea ice and pond ice
+>          spn         , & ! snow depth on refrozen pond (m)
+>          tmp             ! 0 or 1
+> 
+1064,1068c996
+<          l_fswthru_idf  , & ! nir dif SW through ice to ocean (W m-2)
+<          l_fswthru_uvrdr, & ! uv  dir SW through ice to ocean (W m-2)
+<          l_fswthru_uvrdf, & ! uv  dif SW through ice to ocean (W m-2)
+<          l_fswthru_pardr, & ! par dir SW through ice to ocean (W m-2)
+<          l_fswthru_pardf    ! par dif SW through ice to ocean (W m-2)
+---
+>          l_fswthru_idf      ! nir dif SW through ice to ocean (W m-2)
+1090,1092c1018
+<       if (.not.semi_implicit_Tsfc) then  ! GEOS sets solar angles in driver level
+<          call compute_coszen (TLAT, TLON, yday,  sec, coszen)
+<       endif
+---
+>       call compute_coszen (TLAT, TLON, yday,  sec, coszen)
+1125,1149c1051,1129
+<                apondn = alvln(n)*apndn(n)
+<                call shortwave_dEdd_set_eff(aicen(n),  vsnon(n),   &
+<                                            alvln(n),  apondn,     &
+<                                            hpndn(n),  ipndn(n),   &
+<                                            ffracn(n), fsnow,      &
+<                                            dt,        Tsfcn(n),   &
+<                                            fsn,       hsn,        &
+<                                            dhsn(n),   fpn,        &
+<                                            hpn,       apeffn(n),  &
+<                                            l_rsnows(:), rhosnwn(:), &
+<                                            rsnwn(:),  l_initonly)
+<                if (icepack_warnings_aborted(subname)) return
+<             elseif (tr_pond_sealvl) then
+<                apondn = apndn(n)
+<                call shortwave_dEdd_set_eff(aicen(n),  vsnon(n),   &
+<                                            alvln(n),  apondn,     &
+<                                            hpndn(n),  ipndn(n),   &
+<                                            ffracn(n), fsnow,      &
+<                                            dt,        Tsfcn(n),   &
+<                                            fsn,       hsn,        &
+<                                            dhsn(n),   fpn,        &
+<                                            hpn,       apeffn(n),  &
+<                                            l_rsnows(:), rhosnwn(:), &
+<                                            rsnwn(:),  l_initonly)
+<                if (icepack_warnings_aborted(subname)) return
+---
+>                hsnlvl = hsn ! initialize
+>                if (trim(snwredist) == 'bulk') then
+>                   hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln(n)))
+>                   ! snow volume over level ice
+>                   alvl = aicen(n) * alvln(n)
+>                   if (alvl > puny) then
+>                      vsn = hsnlvl * alvl
+>                   else
+>                      vsn = vsnon(n)
+>                      alvl = aicen(n)
+>                   endif
+>                   ! set snow properties over level ice
+>                   call shortwave_dEdd_set_snow(R_snw,    &
+>                                                dT_mlt,     rsnw_mlt, &
+>                                                alvl,       vsn,      &
+>                                                Tsfcn(n),   fsn,      &
+>                                                hs0,        hsnlvl,   &
+>                                                rhosnwn(:), rsnwn(:), &
+>                                                l_rsnows(:))
+>                   if (icepack_warnings_aborted(subname)) return
+>                endif ! snwredist
+> 
+>                fpn = c0  ! fraction of ice covered in pond
+>                hpn = c0  ! pond depth over fpn
+>                ! refrozen pond lid thickness avg over ice
+>                ! allow snow to cover pond ice
+>                ipn = alvln(n) * apndn(n) * ipndn(n)
+>                dhs = dhsn(n) ! snow depth difference, sea ice - pond
+>                if (.not. l_initonly .and. ipn > puny .and. &
+>                     dhs < puny .and. fsnow*dt > hs_min) &
+>                     dhs = hsnlvl - fsnow*dt ! initialize dhs>0
+>                spn = hsnlvl - dhs   ! snow depth on pond ice
+>                if (.not. l_initonly .and. ipn*spn < puny) dhs = c0
+>                dhsn(n) = dhs ! save: constant until reset to 0
+> 
+>                ! not using ipn assumes that lid ice is perfectly clear
+>                ! if (ipn <= 0.3_dbl_kind) then
+> 
+>                ! fraction of ice area
+>                fpn = apndn(n) * alvln(n)
+>                ! pond depth over fraction fpn
+>                hpn = hpndn(n)
+> 
+>                ! reduce effective pond area absorbing surface heat flux
+>                ! due to flux already having been used to melt pond ice
+>                fpn = (c1 - ffracn(n)) * fpn
+> 
+>                ! taper pond area with snow on pond ice
+>                if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
+>                   asnow = min(spn/hs1, c1)
+>                   fpn = (c1 - asnow) * fpn
+>                endif
+> 
+>                ! infiltrate snow
+>                hp = hpn
+>                if (hp > puny) then
+>                   hs = hsnlvl
+>                   rp = rhofresh*hp/(rhofresh*hp + rhos*hs)
+>                   if (rp < p15) then
+>                      fpn = c0
+>                      hpn = c0
+>                   else
+>                      hmx = hs*(rhofresh - rhos)/rhofresh
+>                      tmp = max(c0, sign(c1, hp-hmx)) ! 1 if hp>=hmx, else 0
+>                      hp = (rhofresh*hp + rhos*hs*tmp) &
+>                           / (rhofresh    - rhos*(c1-tmp))
+>                      hsn = hsn - hp*fpn*(c1-tmp)
+>                      hpn = hp * tmp
+>                      fpn = fpn * tmp
+>                   endif
+>                endif ! hp > puny
+> 
+>                ! Zero out fraction of thin ponds for radiation only
+>                if (hpn < hpmin) fpn = c0
+>                fsn = min(fsn, c1-fpn)
+> 
+>                ! endif    ! masking by lid ice
+>                apeffn(n) = fpn ! for history
+> 
+1199,1202d1178
+<                              swuvrdr=swuvrdr,               &
+<                              swuvrdf=swuvrdf,               &
+<                              swpardr=swpardr,               &
+<                              swpardf=swpardf,               &
+1208,1211d1183
+<                              fswthru_uvrdr=l_fswthru_uvrdr, &
+<                              fswthru_uvrdf=l_fswthru_uvrdf, &
+<                              fswthru_pardr=l_fswthru_pardr, &
+<                              fswthru_pardf=l_fswthru_pardf, &
+1227,1230d1198
+<             if(present(fswthrun_uvrdr)) fswthrun_uvrdr(n) = l_fswthru_uvrdr
+<             if(present(fswthrun_uvrdf)) fswthrun_uvrdf(n) = l_fswthru_uvrdf
+<             if(present(fswthrun_pardr)) fswthrun_pardr(n) = l_fswthru_pardr
+<             if(present(fswthrun_pardf)) fswthrun_pardf(n) = l_fswthru_pardf
+1283,1284d1250
+<                                   swuvrdr,  swuvrdf,     &
+<                                   swpardr,  swpardf,     &
+1290,1293d1255
+<                                   fswthru_uvrdr,         &
+<                                   fswthru_uvrdf,         &
+<                                   fswthru_pardr,         &
+<                                   fswthru_pardf,         &
+1320,1325d1281
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr , & ! sw down, uv  dir (W/m^2)
+<          swuvrdf , & ! sw down, uv  dif (W/m^2)
+<          swpardr , & ! sw down, par dir (W/m^2)
+<          swpardf     ! sw down, par dif (W/m^2)
+< 
+1340,1344c1296
+<          fswthru_idf , & ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+<          fswthru_uvrdr,& ! uv  dir SW through ice into ocean (W m-2)
+<          fswthru_uvrdf,& ! uv  dif SW through ice into ocean (W m-2)
+<          fswthru_pardr,& ! par dir SW through ice into ocean (W m-2)
+<          fswthru_pardf   ! par dif SW through ice into ocean (W m-2)
+---
+>          fswthru_idf     ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+1423,1426d1374
+<       fswthru_uvrdr  = c0
+<       fswthru_uvrdf  = c0
+<       fswthru_pardr  = c0
+<       fswthru_pardf  = c0
+1485,1488c1433
+<                       fswthru_uvrdr,   fswthru_uvrdf,           &
+<                       fswthru_pardr,   fswthru_pardf,           &
+<                       Sswabs, Iswabs,  fswpenl,                 &
+<                       swuvrdr,swuvrdf, swpardr,swpardf)
+---
+>                       Sswabs, Iswabs,  fswpenl )
+1532,1535c1477
+<                       fswthru_uvrdr,   fswthru_uvrdf,           &
+<                       fswthru_pardr,   fswthru_pardf,           &
+<                       Sswabs, Iswabs,  fswpenl,                 &
+<                       swuvrdr,swuvrdf, swpardr,swpardf)
+---
+>                       Sswabs, Iswabs,  fswpenl )
+1572,1575c1514
+<                       fswthru_uvrdr,   fswthru_uvrdf,           &
+<                       fswthru_pardr,   fswthru_pardf,           &
+<                       Sswabs, Iswabs,  fswpenl,                 &
+<                       swuvrdr,swuvrdf, swpardr,swpardf)
+---
+>                       Sswabs, Iswabs,  fswpenl )
+1685,1688c1624
+<                       fswthru_uvrdr,   fswthru_uvrdf,           &
+<                       fswthru_pardr,   fswthru_pardf,           &
+<                       Sswabs, Iswabs,  fswpenl,                 &
+<                       swuvrdr,swuvrdf, swpardr,swpardf)
+---
+>                       Sswabs, Iswabs,  fswpenl )
+1733,1737c1669
+<          fswthru_idf, & ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+<          fswthru_uvrdr,&! uv  dir SW through ice into ocean (W m-2)
+<          fswthru_uvrdf,&! uv  dif SW through ice into ocean (W m-2)
+<          fswthru_pardr,&! par dir SW through ice into ocean (W m-2)
+<          fswthru_pardf  ! par dif SW through ice into ocean (W m-2)
+---
+>          fswthru_idf    ! nir dif SW through snow/bare ice/ponded ice into ocean (W m-2)
+1744,1749d1675
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr, & ! sw down, uv  dir (W/m^2)
+<          swuvrdf, & ! sw down, uv  dif (W/m^2)
+<          swpardr, & ! sw down, par dir (W/m^2)
+<          swpardf    ! sw down, par dif (W/m^2)
+< 
+1878,1882c1804
+<          fthruidf, & ! nir dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+<          fthruuvrdr,&! uv  dir shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+<          fthruuvrdf,&! uv  dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+<          fthrupardr,&! par dir shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+<          fthrupardf  ! par dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+---
+>          fthruidf    ! nir dif shortwave through snow/bare ice/ponded ice to ocean (W/m^2)
+2064,2067d1985
+<       fthruuvrdr = c0
+<       fthruuvrdf = c0
+<       fthrupardr = c0
+<       fthrupardf = c0
+2684,2686c2602
+<             ! turn off for sea level ponds
+<             if(.not. tr_pond_sealvl .and. &
+<                hpmin <= hp .and. hp < hp0 ) then
+---
+>             if( hpmin <= hp .and. hp <= hp0 ) then
+2799,2802d2714
+<             if (present(swuvrdr)) fthruuvrdr = dfdir(klevp)*swuvrdr
+<             if (present(swuvrdf)) fthruuvrdf = dfdif(klevp)*swuvrdf
+<             if (present(swpardr)) fthrupardr = dfdir(klevp)*swpardr
+<             if (present(swpardf)) fthrupardf = dfdif(klevp)*swpardf
+2920,2923d2831
+<       fswthru_uvrdr = fswthru_uvrdr + fthruuvrdr*fi
+<       fswthru_uvrdf = fswthru_uvrdf + fthruuvrdf*fi
+<       fswthru_pardr = fswthru_pardr + fthrupardr*fi
+<       fswthru_pardf = fswthru_pardf + fthrupardf*fi
+3487,3637d3394
+< !=======================================================================
+< !
+< !   Set the 'effective' snow and pond fractions and depths for dEdd
+< !
+< ! author:  Bruce P. Briegleb, NCAR
+< !   2013:  E Hunke merged with NCAR version
+< !   2024:  DCS refactored for sealvl ponds
+< 
+<       subroutine shortwave_dEdd_set_eff(aicen,     vsnon,   alvln,   &
+<                                         apondn,    hpndn,   ipndn,   &
+<                                         ffracn,    fsnow,   dt,      &
+<                                         Tsfcn,     fsn,     hsn,     &
+<                                         dhsn,      fpn,     hpn,     &
+<                                         apeffn,    l_rsnows,rhosnwn, &
+<                                         rsnwn,     l_initonly)
+< 
+<       real (kind=dbl_kind), intent(in) :: &
+<          aicen   , & ! concentration of ice
+<          vsnon   , & ! volume per unit area of snow (m)
+<          alvln   , & ! level-ice area fraction
+<          apondn  , & ! pond area fraction of category (incl. deformed)
+<          hpndn   , & ! pond depth (m)
+<          ipndn   , & ! pond refrozen lid thickness (m)
+<          ffracn  , & ! fraction of fsurfn used to melt ipond
+<          fsnow   , & ! snowfall rate (kg/m^2 s)
+<          dt      , & ! time step (s)
+<          Tsfcn       ! surface temperature (deg C)
+< 
+<       real (kind=dbl_kind), intent(inout) :: &
+<          fsn     , & ! snow horizontal fraction
+<          hsn     , & ! snow depth (m)
+<          dhsn    , & ! depth difference for snow on sea ice and pond ice
+<          fpn     , & ! pond fraction of ice cover
+<          hpn         ! actual pond depth (m)
+< 
+<       real (kind=dbl_kind), intent(out) :: &
+<          apeffn      ! effective pond area used for radiation
+< 
+<       real(kind=dbl_kind), dimension(nslyr), intent(in) :: &
+<          l_rsnows    ! snow grain radius tracer (10^-6 m)
+< 
+<       real (kind=dbl_kind), dimension (nslyr), intent(out) :: &
+<          rhosnwn, &  ! snow density (kg/m3)
+<          rsnwn       ! snow grain radius (micrometers)
+< 
+<       logical (kind=log_kind), intent(in) :: &
+<          l_initonly  ! local initonly value
+< 
+<       ! local variables
+<       real (kind=dbl_kind) :: &
+<          hsnlvl  , & ! snow depth over level ice (m)
+<          vsn     , & ! snow volume
+<          alvl    , & ! area fraction of level ice
+<          ipn     , & ! pond lid thickness (m), mean over category
+<          hp      , & ! pond depth
+<          hs      , & ! snow depth
+<          asnow   , & ! fractional area of snow cover
+<          rp      , & ! ratio retained melt water to total liquid content
+<          hmx     , & ! maximum available snow infiltration equiv. depth
+<          dhs     , & ! local diff. in snow depth on sea ice and pond ice
+<          spn     , & ! snow depth on refrozen pond (m)
+<          tmp         ! 0 or 1
+< 
+<       character(len=*),parameter :: subname='(shortwave_dEdd_set_eff)'
+< 
+< !-----------------------------------------------------------------------
+<       hsnlvl = hsn ! initialize
+<       if (trim(snwredist) == 'bulk') then
+<          if (.not. tr_lvl) then
+<             call icepack_warnings_add(subname//' ERROR: need lvl trcr')
+<             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<             return
+<          endif
+<          hsnlvl = hsn / (c1 + snwlvlfac*(c1-alvln))
+<          ! snow volume over level ice
+<          alvl = aicen * alvln
+<          if (alvl > puny) then
+<             vsn = hsnlvl * alvl
+<          else
+<             vsn = vsnon
+<             alvl = aicen
+<          endif
+<          ! set snow properties over level ice
+<          call shortwave_dEdd_set_snow(R_snw,    &
+<                                        dT_mlt,     rsnw_mlt, &
+<                                        alvl,       vsn,      &
+<                                        Tsfcn,      fsn,      &
+<                                        hs0,        hsnlvl,   &
+<                                        rhosnwn(:), rsnwn(:), &
+<                                        l_rsnows(:))
+<          if (icepack_warnings_aborted(subname)) return
+<       endif ! snwredist
+< 
+<       fpn = c0  ! fraction of ice covered in pond
+<       hpn = c0  ! pond depth over fpn
+<       ! refrozen pond lid thickness avg over ice
+<       ! allow snow to cover pond ice
+<       ipn = apondn * ipndn
+<       dhs = dhsn ! snow depth difference, sea ice - pond
+<       if (.not. l_initonly .and. ipn > puny .and. &
+<             dhs < puny .and. fsnow*dt > hs_min) &
+<             dhs = hsnlvl - fsnow*dt ! initialize dhs>0
+<       spn = hsnlvl - dhs   ! snow depth on pond ice
+<       if (.not. l_initonly .and. ipn*spn < puny) dhs = c0
+<       dhsn = dhs ! save: constant until reset to 0
+< 
+<       ! not using ipn assumes that lid ice is perfectly clear
+<       ! if (ipn <= 0.3_dbl_kind) then
+< 
+<       ! fraction of ice area
+<       fpn = apondn
+<       ! pond depth over fraction fpn
+<       hpn = hpndn
+< 
+<       ! reduce effective pond area absorbing surface heat flux
+<       ! due to flux already having been used to melt pond ice
+<       fpn = (c1 - ffracn) * fpn
+< 
+<       ! taper pond area with snow on pond ice
+<       if (dhs > puny .and. spn >= puny .and. hs1 > puny) then
+<          asnow = min(spn/hs1, c1)
+<          fpn = (c1 - asnow) * fpn
+<       endif
+< 
+<       ! infiltrate snow
+<       hp = hpn
+<       if (hp > puny) then
+<          hs = hsnlvl
+<          rp = rhofresh*hp/(rhofresh*hp + rhos*hs)
+<          if (rp < p15) then
+<             fpn = c0
+<             hpn = c0
+<          else
+<             hmx = hs*(rhofresh - rhos)/rhofresh
+<             tmp = max(c0, sign(c1, hp-hmx)) ! 1 if hp>=hmx, else 0
+<             hp = (rhofresh*hp + rhos*hs*tmp) &
+<                   / (rhofresh    - rhos*(c1-tmp))
+<             hsn = hsn - hp*fpn*(c1-tmp)
+<             hpn = hp * tmp
+<             fpn = fpn * tmp
+<          endif
+<       endif ! hp > puny
+< 
+<       ! Zero out fraction of thin ponds for radiation only
+<       if (hpn < hpmin) fpn = c0
+<       fsn = min(fsn, c1-fpn)
+< 
+<       ! endif    ! masking by lid ice
+<       apeffn = fpn ! for history
+< 
+<       end subroutine shortwave_dEdd_set_eff
+3966,3967d3722
+<                                         swuvrdr,  swuvrdf,   &
+<                                         swpardr,  swpardf,   &
+3977,3980d3731
+<                                         fswthrun_uvrdr,      &
+<                                         fswthrun_uvrdf,      &
+<                                         fswthrun_pardr,      &
+<                                         fswthrun_pardf,      &
+4000,4005d3750
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          swuvrdr   , & ! sw down, uv  dir (W/m^2)
+<          swuvrdf   , & ! sw down, uv  dif (W/m^2)
+<          swpardr   , & ! sw down, par dir (W/m^2)
+<          swpardf       ! sw down, par dif (W/m^2)
+< 
+4013c3758
+<          calendar_type ! differentiates proleptic_gregorian from other calendars
+---
+>          calendar_type ! differentiates Gregorian from other calendars
+4064,4068c3809
+<          fswthrun_idf , & ! nir dif SW through ice to ocean (W/m^2)
+<          fswthrun_uvrdr,& ! uv  dir SW through ice to ocean (W/m^2)
+<          fswthrun_uvrdf,& ! uv  dif SW through ice to ocean (W/m^2)
+<          fswthrun_pardr,& ! par dir SW through ice to ocean (W/m^2)
+<          fswthrun_pardf   ! par dif SW through ice to ocean (W/m^2)
+---
+>          fswthrun_idf     ! nir dif SW through ice to ocean (W/m^2)
+4106,4115d3846
+<          if (semi_implicit_Tsfc) then
+<             if (.not.(present(swuvrdr) .and. present(swuvrdf) .and. &
+<                       present(swpardr) .and. present(swpardf) .and. &
+<                       present(fswthrun_uvrdr) .and. present(fswthrun_uvrdf) .and. &
+<                       present(fswthrun_pardr) .and. present(fswthrun_pardf))) then
+<                call icepack_warnings_add(subname//' ERROR: semi_implicit_Tsfc=T, missing arguments')
+<                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<                return
+<             endif
+<          endif
+4184,4187d3914
+<                           swuvrdr=swuvrdr,              &
+<                           swuvrdf=swuvrdf,              &
+<                           swpardr=swpardr,              &
+<                           swpardf=swpardf,              &
+4193,4196d3919
+<                           fswthrun_uvrdr=fswthrun_uvrdr,&
+<                           fswthrun_uvrdf=fswthrun_uvrdf,&
+<                           fswthrun_pardr=fswthrun_pardr,&
+<                           fswthrun_pardf=fswthrun_pardf,&
+4226,4229d3948
+<                                  swuvrdr=swuvrdr,        &
+<                                  swuvrdf=swuvrdf,        &
+<                                  swpardr=swpardr,        &
+<                                  swpardf=swpardf,        &
+4235,4238d3953
+<                                  fswthrun_uvrdr=fswthrun_uvrdr,&
+<                                  fswthrun_uvrdf=fswthrun_uvrdf,&
+<                                  fswthrun_pardr=fswthrun_pardr,&
+<                                  fswthrun_pardf=fswthrun_pardf,&
+diff -r Icepack/columnphysics/icepack_snow.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_snow.F90
+15d14
+<       use icepack_parameters, only: snw_growth_wet, drsnw_min, snwliq_max
+35,36c34,36
+<          drsnw_min_o = 1.0186_dbl_kind    ! Bun 1989  (um^3/s)
+<                                           ! minimum volume growth rate 1.28x10^-8 mm^3/s/4/pi
+---
+>          S_r  = 0.033_dbl_kind, & ! irreducible saturation (Anderson 1976)
+>          S_wet= 4.22e5_dbl_kind  ! wet metamorphism parameter (um^3/s)
+>                                   ! = 1.e18 * 4.22e-13 (Oleson 2010)
+363,365d362
+<             do k = 1, nslyr
+<                rsnw (k,n) = max(rsnw_fall, rsnw(k,n))
+<             enddo
+849,851d845
+<       real (kind=dbl_kind) :: &
+<          drsnw_dry_tmp ! snow grain radius growth  (10^-6 m)
+< 
+876,877c870
+<                drsnw_dry_tmp = max(drsnw_dry(k), drsnw_min*drsnw_min_o/rsnw(k,n)**2*dt)
+<                rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry_tmp + drsnw_wet(k))
+---
+>                rsnw(k,n) = min(rsnw_tmax, rsnw(k,n) + drsnw_dry(k) + drsnw_wet(k))
+1112c1105
+<          dr_wet = snw_growth_wet * fliq**3*dt/(c4*pi*rsnw**2)
+---
+>          dr_wet = S_wet * fliq**3*dt/(c4*pi*rsnw**2)
+1209c1202
+<             dlout(k)   = max(c0, (phi_liq(k) - snwliq_max * (c1-phi_ice(k))) * rhofresh * hslyr)
+---
+>             dlout(k)   = max(c0, (phi_liq(k) - S_r*(c1-phi_ice(k))) * rhofresh * hslyr)
+diff -r Icepack/columnphysics/icepack_therm_bl99.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_therm_bl99.F90
+17c17
+<       use icepack_parameters, only: conduct, calc_Tsfc, semi_implicit_Tsfc
+---
+>       use icepack_parameters, only: conduct, calc_Tsfc
+25,26d24
+<       use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+<       use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
+216,221d213
+<       if (semi_implicit_Tsfc) then  ! initialize
+<          dfsurf_dT  = dfsurfdTs_cpl
+<          dflat_dT   = dflatdTs_cpl
+<          fsurfn     = fsurf_cpl
+<          flatn      = flat_cpl
+<       endif
+314,317d305
+<       if (semi_implicit_Tsfc) then
+<          fsurfn = fsurfn + fswsfc ! this is the total heat flux
+<       endif
+< 
+337c325
+<             if (.not.semi_implicit_Tsfc) dfsurf_dT = c0
+---
+>             dfsurf_dT = c0
+368,384c356,370
+<                if (.not.semi_implicit_Tsfc) then  ! no heat flux calculation
+<                   ! surface heat flux
+<                   call surface_heat_flux(Tsf    , fswsfc, &
+<                                          rhoa   , flw   , &
+<                                          potT   , Qa    , &
+<                                          shcoef , lhcoef, &
+<                                          flwoutn, fsensn, &
+<                                          flatn  , fsurfn)
+<                   if (icepack_warnings_aborted(subname)) return
+< 
+<                   ! derivative of heat flux with respect to surface temperature
+<                   call dsurface_heat_flux_dTsf(Tsf      , rhoa      , &
+<                                                shcoef   , lhcoef    , &
+<                                                dfsurf_dT, dflwout_dT, &
+<                                                dfsens_dT, dflat_dT  )
+<                   if (icepack_warnings_aborted(subname)) return
+<                endif
+---
+>                ! surface heat flux
+>                call surface_heat_flux(Tsf    , fswsfc, &
+>                                       rhoa   , flw   , &
+>                                       potT   , Qa    , &
+>                                       shcoef , lhcoef, &
+>                                       flwoutn, fsensn, &
+>                                       flatn  , fsurfn)
+>                if (icepack_warnings_aborted(subname)) return
+> 
+>                ! derivative of heat flux with respect to surface temperature
+>                call dsurface_heat_flux_dTsf(Tsf      , rhoa      , &
+>                                             shcoef   , lhcoef    , &
+>                                             dfsurf_dT, dflwout_dT, &
+>                                             dfsens_dT, dflat_dT  )
+>                if (icepack_warnings_aborted(subname)) return
+661,663d646
+<                if (semi_implicit_Tsfc) then  ! update lat hf based on dT
+<                   flatn  = flatn  + dTsf*dflat_dT
+<                endif
+730,738c713,714
+<          write(warnstr,*) subname, 'dfsurf_dT:', dfsurf_dT
+<          call icepack_warnings_add(warnstr)
+<          write(warnstr,*) subname, 'enew:', enew
+<          call icepack_warnings_add(warnstr)
+<          write(warnstr,*) subname, 'einit:', einit
+<          call icepack_warnings_add(warnstr)
+<          write(warnstr,*) subname, 'dt:', dt
+<          call icepack_warnings_add(warnstr)
+<          write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', fcondtopn, fcondbot, fswint
+---
+>          write(warnstr,*) subname, 'fcondtop, fcondbot, fswint', &
+>               fcondtopn, fcondbot, fswint
+804,808c780,782
+<          if (.not.semi_implicit_Tsfc) then
+<             flwoutn = flwoutn + dTsf_prev * dflwout_dT
+<             fsensn  = fsensn  + dTsf_prev * dfsens_dT
+<             flatn   = flatn   + dTsf_prev * dflat_dT
+<          endif
+---
+>          flwoutn = flwoutn + dTsf_prev * dflwout_dT
+>          fsensn  = fsensn  + dTsf_prev * dfsens_dT
+>          flatn   = flatn   + dTsf_prev * dflat_dT
+diff -r Icepack/columnphysics/icepack_therm_itd.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_therm_itd.F90
+29c29
+<       use icepack_parameters, only: phi_init, dsin0_frazil
+---
+>       use icepack_parameters, only: phi_init, dsin0_frazil, salt_loss
+42c42
+<       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond
+---
+>       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
+101,102c101
+<                              fpond,       Tf,          &
+<                              dpnd_melt)
+---
+>                              fpond,       Tf           )
+138,140d136
+<       real (kind=dbl_kind), intent(inout), optional :: &
+<          dpnd_melt ! pond 'drainage' due to ice melting (m / step)
+< 
+470,477d465
+<                   if (tr_pond .and. present(dpnd_melt)) then
+<                      if (tr_pond_lvl) then
+<                         dpnd_melt = dpnd_melt + da0 * trcrn(nt_apnd,1)  &
+<                                  * trcrn(nt_hpnd,1) * trcrn(nt_alvl,1)
+<                      else
+<                         dpnd_melt = dpnd_melt + da0*trcrn(nt_apnd,1)*trcrn(nt_hpnd,1)
+<                      endif
+<                   endif
+892,893c880
+<                                flux_bio,   d_afsd_latm,&
+<                                dpnd_melt)
+---
+>                                flux_bio,   d_afsd_latm)
+919,921d905
+<       real (kind=dbl_kind), intent(inout), optional :: &
+<          dpnd_melt     ! pond 'drainage' due to ice melting (m / step)
+< 
+1032,1041d1015
+<             if (tr_pond .and. present(dpnd_melt)) then
+<                if (tr_pond_lvl) then
+<                   dpnd_melt = dpnd_melt + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
+<                            *rsiden(n)*trcrn(nt_alvl,n)
+<                else
+<                   dpnd_melt = dpnd_melt + aicen(n)*trcrn(nt_apnd,n)*trcrn(nt_hpnd,n) &
+<                            *rsiden(n)
+<                endif
+<             endif
+< 
+1239a1214
+>                               dwavefreq,             &
+1312c1287,1288
+<          wavefreq       ! wave frequencies (s^-1)
+---
+>          wavefreq,              & ! wave frequencies (s^-1)
+>          dwavefreq                ! wave frequency bin widths (s^-1)
+1741a1718
+>                                   dwavefreq,                 &
+1886c1863
+<                                      first_ice,                   &
+---
+>                                      first_ice,    fzsal,         &
+1894a1872
+>                                      dwavefreq,                   &
+1896,1897c1874
+<                                      d_afsd_latm,  d_afsd_weld,   &
+<                                      dpnd_melt)
+---
+>                                      d_afsd_latm,  d_afsd_weld)
+1942c1919
+<          dpnd_melt    ! pond 'drainage' due to ice melting (m / step)
+---
+>          fzsal        ! salt flux to ocean from zsalinity (kg/m^2/s) (deprecated)
+1984c1961,1962
+<          wavefreq       ! wave frequencies (s^-1)
+---
+>          wavefreq, &    ! wave frequencies (s^-1)
+>          dwavefreq      ! wave frequency bin widths (s^-1)
+2024a2003
+>                        present(dwavefreq)     .and. &
+2079,2080c2058
+<                              fpond, Tf ,         &
+<                              dpnd_melt)
+---
+>                              fpond, Tf       )
+2112c2090,2091
+<                            wave_spectrum, wavefreq,     &
+---
+>                            wave_spectrum,               &
+>                            wavefreq,      dwavefreq,    &
+2130c2109
+<                          d_afsd_latm, dpnd_melt)
+---
+>                          d_afsd_latm)
+2150,2151c2129
+<                            aicen_init(1), vicen_init(1), &
+<                            dpnd_melt    , trcrn)
+---
+>                            aicen_init(1), vicen_init(1))
+diff -r Icepack/columnphysics/icepack_therm_mushy.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_therm_mushy.F90
+8,9c8,9
+<   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit, rhofresh
+<   use icepack_parameters, only: hs_min, snwgrain, semi_implicit_Tsfc
+---
+>   use icepack_parameters, only: viscosity_dyn, rhow, rhoi, rhos, cp_ocn, cp_ice, Lfresh, gravit
+>   use icepack_parameters, only: hs_min, snwgrain
+13,14c13
+<   use icepack_parameters, only: pndmacr
+<   use icepack_tracers, only: nilyr, nslyr, tr_pond, tr_pond_sealvl
+---
+>   use icepack_tracers, only: nilyr, nslyr, tr_pond
+23,25d21
+<   use icepack_meltpond_sealvl, only: pond_hypsometry, pond_height
+<   use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+<   use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
+63,65c59
+<                                           smice,    smliq,    &
+<                                           dpnd_flush,         &
+<                                           dpnd_expon)
+---
+>                                           smice,    smliq)
+89c83
+<          apond       , & ! melt pond area fraction of category
+---
+>          apond       , & ! melt pond area fraction
+120,123d113
+<      real (kind=dbl_kind), intent(inout):: &
+<          dpnd_flush  , & ! pond flushing rate due to ice permeability (m/s)
+<          dpnd_expon      ! exponential pond drainage rate (m/s)
+< 
+341,342c331
+<     call flush_pond(w, hpond, apond, dt, dpnd_flush, dpnd_expon, &
+<                     zTin, phi, hilyr, hin, hsn)
+---
+>     call flush_pond(w, hpond, apond, dt)
+855,859d843
+<        if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
+<           fsurf_cpl = fsurf_cpl + dfsurfdTs_cpl * (Tmlt - Tsf)
+<           flat_cpl  = flat_cpl  + dflatdTs_cpl  * (Tmlt - Tsf)
+<        endif
+< 
+904,908d887
+<           if (semi_implicit_Tsfc) then  ! initialize
+<              fsurf_cpl = fsurf_cpl0
+<              flat_cpl  = flat_cpl0
+<           endif
+< 
+1250,1259d1228
+<     if (semi_implicit_Tsfc) then  ! surf/lat hf from coupler, d(surf/lat)/dT computed
+<        dfsurfn_dTsf  = dfsurfdTs_cpl
+<        dflatn_dTsf   = dflatdTs_cpl
+<        fsurfn        = fsurf_cpl
+<        flatn         = flat_cpl
+<        fsurfn        = fsurfn + fswsfc
+<        flwoutn       = c0 !prevent compiler warning
+<        fsensn        = c0 !prevent compiler warning
+<     endif
+< 
+1263,1271c1232,1239
+<        if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
+<           ! surface heat flux
+<           call surface_heat_flux(Tsf,     fswsfc, &
+<                                  rhoa,    flw,    &
+<                                  potT,    Qa,     &
+<                                  shcoef,  lhcoef, &
+<                                  flwoutn, fsensn, &
+<                                  flatn,   fsurfn)
+<           if (icepack_warnings_aborted(subname)) return
+---
+>        ! surface heat flux
+>        call surface_heat_flux(Tsf,     fswsfc, &
+>                               rhoa,    flw,    &
+>                               potT,    Qa,     &
+>                               shcoef,  lhcoef, &
+>                               flwoutn, fsensn, &
+>                               flatn,   fsurfn)
+>        if (icepack_warnings_aborted(subname)) return
+1273,1279c1241,1246
+<           ! derivative of heat flux with respect to surface temperature
+<           call dsurface_heat_flux_dTsf(Tsf,          rhoa,          &
+<                                        shcoef,       lhcoef,        &
+<                                        dfsurfn_dTsf, dflwoutn_dTsf, &
+<                                        dfsensn_dTsf, dflatn_dTsf)
+<           if (icepack_warnings_aborted(subname)) return
+<        endif
+---
+>        ! derivative of heat flux with respect to surface temperature
+>        call dsurface_heat_flux_dTsf(Tsf,          rhoa,          &
+>                                     shcoef,       lhcoef,        &
+>                                     dfsurfn_dTsf, dflwoutn_dTsf, &
+>                                     dfsensn_dTsf, dflatn_dTsf)
+>        if (icepack_warnings_aborted(subname)) return
+1325,1329d1291
+<        if (semi_implicit_Tsfc) then  ! update surf/lat hf based on dT
+<           fsurfn = fsurfn + (Tsf - Tsf_prev)*dfsurfn_dTsf
+<           flatn  = flatn  + (Tsf - Tsf_prev)*dflatn_dTsf
+<        endif
+< 
+1353,1361c1315,1321
+<     if (.not.semi_implicit_Tsfc) then  ! no surface heat flux calculation
+<        call surface_heat_flux(Tsf,     fswsfc, &
+<                               rhoa,    flw,    &
+<                               potT,    Qa,     &
+<                               shcoef,  lhcoef, &
+<                               flwoutn, fsensn, &
+<                               flatn,   fsurfn)
+<        if (icepack_warnings_aborted(subname)) return
+<     endif
+---
+>     call surface_heat_flux(Tsf,     fswsfc, &
+>                            rhoa,    flw,    &
+>                            potT,    Qa,     &
+>                            shcoef,  lhcoef, &
+>                            flwoutn, fsensn, &
+>                            flatn,   fsurfn)
+>     if (icepack_warnings_aborted(subname)) return
+3120c3080
+<          apond     , & ! melt pond area fraction of category (-)
+---
+>          apond     , & ! melt pond area (-)
+3164,3167d3123
+<           ice_mass = ice_mass + phi(k) * &
+<            icepack_mushy_density_brine( &
+<             liquidus_brine_salinity_mush(zTin(k))) + (c1 - phi(k))*rhoi
+< 
+3170a3127,3130
+>           ! ice mass
+>           ice_mass = ice_mass + phi(k)        * icepack_mushy_density_brine(liquidus_brine_salinity_mush(zTin(k))) + &
+>                (c1 - phi(k)) * rhoi
+> 
+3181c3141
+<        hocn = (ice_mass + hpond * apond * rhofresh + hsn * rhos) / rhow
+---
+>        hocn = (ice_mass + hpond * apond * rhow + hsn * rhos) / rhow
+3184,3189c3144
+<        if (tr_pond_sealvl) then
+<           call pond_height(apond, hpond, hin, hbrine)
+<           if (icepack_warnings_aborted(subname)) return
+<        else
+<           hbrine = hin + hpond
+<        endif
+---
+>        hbrine = hin + hpond
+3220,3221c3175
+<   subroutine flush_pond(w, hpond, apond, dt, dpnd_flush, dpnd_expon, &
+<                         zTin, phi, hilyr, hin, hsn)
+---
+>   subroutine flush_pond(w, hpond, apond, dt)
+3227,3234c3181,3182
+<          dt    , & ! time step (s)
+<          hilyr , & ! ice layer thickness (m)
+<          hin   , & ! ice thickness (m)
+<          hsn       ! snow thickness (m)
+< 
+<     real(kind=dbl_kind), dimension(:), intent(in) :: &
+<          zTin      , & ! ice layer temperature (C)
+<          phi           ! ice layer liquid fraction
+---
+>          apond , & ! melt pond area (-)
+>          dt        ! time step (s)
+3237,3247c3185
+<          hpond     , & ! melt pond thickness (m)
+<          apond     , & ! melt pond area fraction of category (-)
+<          dpnd_flush, & ! pond flushing rate due to ice permeability (m/s)
+<          dpnd_expon    ! exponential pond drainage rate (m/s)
+< 
+<     real(kind=dbl_kind) :: &
+<          dhpond   , & ! change in pond depth per unit pond area (m)
+<          ice_mass , & ! mass of ice (kg m-2)
+<          hocn     , & ! height of ocean above mean base of ice (m)
+<          hpsurf   , & ! height of the pond surface above mean base of ice (m)
+<          head         ! height of pond surface above sea level (m)
+---
+>          hpond     ! melt pond thickness (m)
+3259,3270c3197,3200
+<           !-------------------------------------------------------------
+<           ! flush pond through mush (percolation drainage)
+<           !-------------------------------------------------------------
+<           dhpond = max(-w * dt / apond, -hpond)
+<           dpnd_flush = -dhpond * apond
+<           ! update pond depth (and area)
+<           if (tr_pond_sealvl) then
+<                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
+<                if (icepack_warnings_aborted(subname)) return
+<           else
+<                hpond = hpond - w * dt / apond
+<           endif
+---
+> 
+>           ! flush pond through mush
+>           hpond = hpond - w * dt / apond
+> 
+3273,3309c3203,3206
+<           !-------------------------------------------------------------
+<           ! exponential decay of pond (macro-flaw drainage)
+<           !-------------------------------------------------------------
+<           lambda_pond = c1 / (tscale_pnd_drain*24.0_dbl_kind &
+<             *3600.0_dbl_kind)
+<           if (trim(pndmacr) == 'lambda') then
+<                dhpond = max(-lambda_pond*dt*(hpond + hpond0),-hpond)
+<           elseif (trim(pndmacr) == 'head') then
+<                ! Calling calc_ice_mass here is not bit-for-bit due to optimization, so left inline for now.
+<                ! This will be updated in the future.
+<                call calc_ice_mass(phi, zTin, hilyr, ice_mass)
+<                if (icepack_warnings_aborted(subname)) return
+<                hocn = (ice_mass + hpond*apond*rhofresh + hsn*rhos)/rhow
+<                call pond_height(apond, hpond, hin, hpsurf)
+<                if (icepack_warnings_aborted(subname)) return
+<                head = hpsurf - hocn
+<                dhpond = max(min(c0, -lambda_pond*dt*head), -hpond)
+<           else
+<                call icepack_warnings_add(subname//" unsupported pndmacr option" )
+<                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<                if (icepack_warnings_aborted(subname)) return
+<           endif
+<           ! diagnostic drainage rate
+<           dpnd_expon = -dhpond * apond
+<           ! update pond depth (and area)
+<           if (tr_pond_sealvl) then
+<                call pond_hypsometry(hpond, apond, dhpond=dhpond, hin=hin)
+<                if (icepack_warnings_aborted(subname)) return
+<           else
+<                if (trim(pndmacr) == 'lambda') then
+<                   hpond = hpond - lambda_pond * dt * (hpond + hpond0)
+<                else
+<                   call icepack_warnings_add(subname//" currently only pondmacr='lambda' supported for not sealvlponds" )
+<                   call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<                   if (icepack_warnings_aborted(subname)) return
+<                endif
+<           endif
+---
+>           ! exponential decay of pond
+>           lambda_pond = c1 / (tscale_pnd_drain * 24.0_dbl_kind * 3600.0_dbl_kind)
+>           hpond = hpond - lambda_pond * dt * (hpond + hpond0)
+> 
+3310a3208
+> 
+3678,3712d3575
+< 
+< !=======================================================================
+< ! Ice Mass
+< !=======================================================================
+< 
+<   subroutine calc_ice_mass(phi, zTin, hilyr, ice_mass)
+< 
+<      ! Calculate the mass of the ice per unit category area
+<      real(kind=dbl_kind), dimension(:), intent(in) :: &
+<           zTin      , & ! ice layer temperature (C)
+<           phi           ! ice layer liquid fraction
+< 
+<      real(kind=dbl_kind), intent(in) :: &
+<           hilyr         ! ice layer thickness (m)
+< 
+<      real(kind=dbl_kind), intent(out) :: &
+<           ice_mass      ! mass per unit category area (kg m-2)
+< 
+<      ! local variables
+<      integer(kind=int_kind) :: &
+<           k             ! ice layer index
+< 
+<      character(len=*),parameter :: subname='(calc_ice_mass)'
+< 
+<      ice_mass = c0
+< 
+<      do k = 1, nilyr
+<           ice_mass = ice_mass + phi(k) * &
+<            icepack_mushy_density_brine( &
+<             liquidus_brine_salinity_mush(zTin(k))) + (c1 - phi(k))*rhoi
+<      enddo
+< 
+<      ice_mass = ice_mass * hilyr
+< 
+< end subroutine calc_ice_mass
+diff -r Icepack/columnphysics/icepack_therm_shared.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_therm_shared.F90
+51,58d50
+<       real (kind=dbl_kind), public :: &
+<          dfsurfdTs_cpl,      & !
+<          dflatdTs_cpl,       & !
+<          fsurf_cpl0,         & !
+<          flat_cpl0,          & !
+<          fsurf_cpl,          & !
+<          flat_cpl              !
+< 
+diff -r Icepack/columnphysics/icepack_therm_vertical.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_therm_vertical.F90
+33c33
+<       use icepack_parameters, only: saltflux_option, congel_freeze, semi_implicit_Tsfc, vapor_flux_correction
+---
+>       use icepack_parameters, only: saltflux_option, congel_freeze
+38c38
+<       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl
+---
+>       use icepack_tracers, only: tr_pond_lvl, tr_pond_topo
+44,45d43
+<       use icepack_therm_shared, only: fsurf_cpl, flat_cpl, dfsurfdTs_cpl, dflatdTs_cpl
+<       use icepack_therm_shared, only: fsurf_cpl0, flat_cpl0
+65d62
+<       use icepack_meltpond_sealvl, only: compute_ponds_sealvl
+113,114c110
+<                                   prescribed_ice,         &
+<                                   dpnd_flush,  dpnd_expon)
+---
+>                                   prescribed_ice)
+129c125
+<          apond   , & ! melt pond area fraction of category
+---
+>          apond   , & ! melt pond area fraction
+206,208c202
+<          frz_onset, & ! day of year that freezing begins (congel or frazil)
+<          dpnd_flush,& ! pond flushing rate due to ice permeability (m/s)
+<          dpnd_expon   ! exponential pond drainage rate (m/s)
+---
+>          frz_onset    ! day of year that freezing begins (congel or frazil)
+275,278d268
+<       if (tr_pond) then
+<          dpnd_flush = c0
+<          dpnd_expon = c0
+<       endif
+281c271
+<          fsensn    = c0
+---
+>          fsensn  = c0
+337,338c327
+<                                               smice,     smliq,     &
+<                                               dpnd_flush,dpnd_expon)
+---
+>                                               smice,     smliq)
+356c345
+<                                      fcondtopn, fcondbotn, &
+---
+>                                      fcondtopn, fcondbotn,  &
+378c367,368
+<       if (hilyr > puny) then
+---
+>       Tsnice = c0
+>       if ((hslyr+hilyr) > puny) then
+380c370
+<             Tsnice = Tsnice + aicen*((hilyr*zTsn(nslyr) + hslyr*zTin(1)) / (hslyr+hilyr))
+---
+>             Tsnice = (hslyr*zTsn(nslyr) + hilyr*zTin(1)) / (hslyr+hilyr)
+382c372
+<             Tsnice = Tsnice + aicen*Tsf
+---
+>             Tsnice = Tsf
+771c761
+<          tice_high   , & ! flag for zTin > Tmlt
+---
+>          tice_high   , & ! flag for zTin > Tmax
+1167,1168c1157
+<          Tmlts       , & ! melting temperature (deg C)
+<          de_vapor        ! energy correction due to cond/sub inconsistency (J m-2)
+---
+>          Tmlts           ! melting temperature (deg C)
+1205d1193
+<       de_vapor = c0
+1289a1278
+>          dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
+1291,1313c1280,1281
+<          if (vapor_flux_correction) then  ! compute mass/enthalpy at 0C
+<             dhs = econ / (-rhos*Lfresh - rhos*Lvap) ! econ < 0, dhs > 0
+< 
+<             ! assume all condensation becomes ice (no liquid)
+<             massice(1) = massice(1) + dhs*rhos
+< 
+<             hstot = dzs(1) + dhs
+<             ! adjust top layer snow enthalpy b.c. we added them at 0C
+<             zqsnew = -rhos*Lfresh
+<             if (hstot > puny) then
+<                zqsn(1) =  (dzs(1) * zqsn(1) &
+<                             + dhs * zqsnew) / hstot
+<                if (ktherm < 2) then
+<                   ! avoid roundoff errors
+<                   zqsn(1) = min(zqsn(1), -rhos*Lfresh)
+<                endif
+<             endif
+<          else
+<             dhs = econ / (zqsn(1) - rhos*Lvap) ! econ < 0, dhs > 0
+< 
+<             ! assume all condensation becomes ice (no liquid)
+<             massice(1) = massice(1) + dhs*rhos
+<          endif
+---
+>          ! assume all condensation becomes ice (no liquid)
+>          massice(1) = massice(1) + dhs*rhos
+1318d1285
+< 
+1320,1330c1287
+< 
+<          if (vapor_flux_correction) then  ! compute mass/enthalpy at 0C
+<             dhi = econ / (-rhoi*Lfresh - rhoi*Lvap) ! econ < 0, dhi > 0
+<             ! adjust top layer ice enthalpy b.c. we added them at 0C
+<             !zqsnew = -rhoi*Lfresh
+<             !hqtot = dzi(1)*qm(1) + dhi*zqsnew
+<             de_vapor = de_vapor + (-dhi)*(qm(1) - (-rhoi*Lfresh)) ! de_vapor can be v+- (J m-2)
+<          else
+<             dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
+<          endif
+< 
+---
+>          dhi = econ / (qm(1) - rhoi*Lvap) ! econ < 0, dhi > 0
+1336d1292
+< 
+1436,1443c1392,1393
+<          if (vapor_flux_correction) then  ! compute mass/enthalpy and de_vapor correction
+<             qsub = -rhos*Lfresh - rhos*Lvap ! qsub < 0
+<             dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+<             de_vapor = de_vapor + (-dhs)*min(zqsn(k) - (-rhos*Lfresh), c0) ! de_vapor < 0 (J m-2)
+<          else
+<             qsub = zqsn(k) - rhos*Lvap ! qsub < 0
+<             dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+<          endif
+---
+>          qsub = zqsn(k) - rhos*Lvap ! qsub < 0
+>          dhs  = max (-dzs(k), esub/qsub)  ! esub > 0, dhs < 0
+1829,1831d1778
+<       if (vapor_flux_correction) then  ! update fhocnn based on de_vapor correction
+<          fhocnn = fhocnn + de_vapor/dt
+<       endif
+2222,2225d2168
+<                                     fswthrun_uvrdr,             &
+<                                     fswthrun_uvrdf,             &
+<                                     fswthrun_pardr,             &
+<                                     fswthrun_pardf,             &
+2241,2244d2183
+<                                     fswthru_uvrdr ,             &
+<                                     fswthru_uvrdf ,             &
+<                                     fswthru_pardr ,             &
+<                                     fswthru_pardf ,             &
+2247d2185
+<                                     dfsurfdT    , dflatdT     , &
+2266,2271c2204
+<                                     zlvs        , afsdn       , &
+<                                     dpnd_flush  , dpnd_flushn , &
+<                                     dpnd_expon  , dpnd_exponn , &
+<                                     dpnd_freebd , dpnd_freebdn, &
+<                                     dpnd_initial, dpnd_initialn, &
+<                                     dpnd_dlid   , dpnd_dlidn)
+---
+>                                     zlvs        , afsdn)
+2358,2364d2290
+<       real (kind=dbl_kind), intent(inout), optional :: &
+<          dpnd_flush  , & ! pond flushing rate due to ice permeability (m/step)
+<          dpnd_expon  , & ! exponential pond drainage rate (m/step)
+<          dpnd_freebd , & ! pond drainage rate due freeboard constraint (m/step)
+<          dpnd_initial, & ! runoff rate due to rfrac (m/step)
+<          dpnd_dlid       ! pond loss/gain (+/-) to ice lid (m/step)
+< 
+2373,2376d2298
+<          fswthru_uvrdr,& ! uv  dir shortwave penetrating to ocean (W/m^2)
+<          fswthru_uvrdf,& ! uv  dif shortwave penetrating to ocean (W/m^2)
+<          fswthru_pardr,& ! par dir shortwave penetrating to ocean (W/m^2)
+<          fswthru_pardf,& ! par dif shortwave penetrating to ocean (W/m^2)
+2417c2339
+<          apnd        , & ! melt pond area fraction tracer
+---
+>          apnd        , & ! melt pond area fraction
+2444,2450d2365
+<       real (kind=dbl_kind), dimension(:), intent(inout), optional :: &
+<          dpnd_flushn , & ! category pond flushing rate          (m/step)
+<          dpnd_exponn , & ! exponential pond drainage rate       (m/step)
+<          dpnd_freebdn, & ! pond drainage rate due to freeboard  (m/step)
+<          dpnd_initialn,& ! runoff rate due to rfrac (m/step)
+<          dpnd_dlidn      ! category pond loss/gain due to ice lid (m/step)
+< 
+2458,2459d2372
+<          dfsurfdT     , & ! derivative of fsurfn with respect to temperatur (W m-2 K-1)
+<          dflatdT      , & ! derivative of flatn with respect to temperature (W m-2 K-1)
+2463,2467c2376
+<          fswthrun_idf , & ! nir dif SW through ice to ocean   (W/m^2)
+<          fswthrun_uvrdr,& ! uv  dir SW through ice to ocean   (W/m^2)
+<          fswthrun_uvrdf,& ! uv  dif SW through ice to ocean   (W/m^2)
+<          fswthrun_pardr,& ! par dir SW through ice to ocean   (W/m^2)
+<          fswthrun_pardf   ! par dif SW through ice to ocean   (W/m^2)
+---
+>          fswthrun_idf     ! nir dif SW through ice to ocean   (W/m^2)
+2531d2439
+<          apond       , & ! melt pond area fraction of category
+2535,2552c2443,2449
+<          l_fswthrun_vdr,   & ! vis dir SW category ice to ocean (W/m^2)
+<          l_fswthrun_vdf,   & ! vis dif SW category ice to ocean (W/m^2)
+<          l_fswthrun_idr,   & ! nir dir SW category ice to ocean (W/m^2)
+<          l_fswthrun_idf,   & ! nir dif SW category ice to ocean (W/m^2)
+<          l_fswthrun_uvrdr, & ! uv  dir SW category ice to ocean (W/m^2)
+<          l_fswthrun_uvrdf, & ! uv  dif SW category ice to ocean (W/m^2)
+<          l_fswthrun_pardr, & ! par dir SW category ice to ocean (W/m^2)
+<          l_fswthrun_pardf, & ! par dif SW category ice to ocean (W/m^2)
+<          l_dsnow,          & ! local snow change
+<          l_dsnown,         & ! local snow change category
+<          l_meltsliq          ! mass of snow melt local           (kg/m^2)
+< 
+<       real (kind=dbl_kind) :: &
+<          l_dpnd_flushn,  & ! category pond flushing rate          (m/step)
+<          l_dpnd_exponn,  & ! exponential pond drainage rate       (m/step)
+<          l_dpnd_freebdn, & ! pond drainage rate due to freeboard  (m/step)
+<          l_dpnd_initialn,& ! runoff rate due to rfrac (m/step)
+<          l_dpnd_dlidn      ! category pond loss/gain due to ice lid (m/step)
+---
+>          l_fswthrun_vdr, & ! vis dir SW local n ice to ocean  (W/m^2)
+>          l_fswthrun_vdf, & ! vis dif SW local n ice to ocean  (W/m^2)
+>          l_fswthrun_idr, & ! nir dir SW local n ice to ocean  (W/m^2)
+>          l_fswthrun_idf, & ! nir dif SW local n ice to ocean  (W/m^2)
+>          l_dsnow,        & ! local snow change
+>          l_dsnown,       & ! local snow change category
+>          l_meltsliq      ! mass of snow melt local           (kg/m^2)
+2595,2628c2492,2493
+<          if (semi_implicit_Tsfc) then
+<             if (.not.(present(fswthru_uvrdr) .and. present(fswthru_uvrdf) .and. &
+<                       present(fswthru_pardr) .and. present(fswthru_pardf) .and. &
+<                       present(dfsurfdT)      .and. present(dflatdT)      )) then
+<                call icepack_warnings_add(subname//' error in semi_implicit_Tsfc arguments, semi_implicit_Tsfc=T')
+<                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<             endif
+<          endif
+<          if ((present(fswthru_uvrdr) .and. .not.present(fswthrun_uvrdr)) .or. &
+<              (present(fswthru_uvrdf) .and. .not.present(fswthrun_uvrdf)) .or. &
+<              (present(fswthru_pardr) .and. .not.present(fswthrun_pardr)) .or. &
+<              (present(fswthru_pardf) .and. .not.present(fswthrun_pardf))) then
+<             call icepack_warnings_add(subname//' error in fswthru [uvr|par]d[rf] arguments')
+<             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<             return
+<          endif
+<          if (tr_pond) then
+<             if ((present(dpnd_flushn  ) .and. .not.present(dpnd_flush   )) .or. &
+<                 (present(dpnd_flush   ) .and. .not.present(dpnd_flushn  )) .or. &
+<                 (present(dpnd_exponn  ) .and. .not.present(dpnd_expon   )) .or. &
+<                 (present(dpnd_expon   ) .and. .not.present(dpnd_exponn  )) .or. &
+<                 (present(dpnd_freebdn ) .and. .not.present(dpnd_freebd  )) .or. &
+<                 (present(dpnd_freebd  ) .and. .not.present(dpnd_freebdn )) .or. &
+<                 (present(dpnd_initialn) .and. .not.present(dpnd_initial )) .or. &
+<                 (present(dpnd_initial ) .and. .not.present(dpnd_initialn)) .or. &
+<                 (present(dpnd_dlidn   ) .and. .not.present(dpnd_dlid    )) .or. &
+<                 (present(dpnd_dlid    ) .and. .not.present(dpnd_dlidn   ))) then
+<                call icepack_warnings_add(subname//' error in pond arguments')
+<                call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<                return
+<             endif
+<          endif
+<          if ((present(dsnow ) .and. .not.present(dsnown)) .or. &
+<              (present(dsnown) .and. .not.present(dsnow ))) then
+---
+>          if ((present(dsnow) .and. .not.present(dsnown)) .or. &
+>              (present(dsnown) .and. .not.present(dsnow))) then
+2665,2675d2529
+<       ! Initialize pond area fractions
+<       !-----------------------------------------------------------------
+<       do n= 1, ncat
+<          if (tr_pond_lvl) then
+<             apond(n) = apnd(n) * alvl(n)
+<          else
+<             apond(n) = apnd(n)
+<          endif
+<       enddo
+< 
+<       !-----------------------------------------------------------------
+2705c2559,2560
+<          call neutral_drag_coeffs (apond       , &
+---
+>          call neutral_drag_coeffs (apnd         , &
+>                                    hpnd        , ipnd         , &
+2749,2760d2603
+<          l_dpnd_flushn   = c0
+<          l_dpnd_exponn   = c0
+<          l_dpnd_freebdn  = c0
+<          l_dpnd_initialn = c0
+<          l_dpnd_dlidn    = c0
+<          if (tr_pond) then
+<             if (present(dpnd_flushn)  ) l_dpnd_flushn   = dpnd_flushn(n)
+<             if (present(dpnd_exponn)  ) l_dpnd_exponn   = dpnd_exponn(n)
+<             if (present(dpnd_freebdn) ) l_dpnd_freebdn  = dpnd_freebdn(n)
+<             if (present(dpnd_initialn)) l_dpnd_initialn = dpnd_initialn(n)
+<             if (present(dpnd_dlidn)   ) l_dpnd_dlidn    = dpnd_dlidn(n)
+<          endif
+2846d2688
+<                                 fsurfn_f   (n),                 &
+2847a2690
+>                                 fsurfn_f   (n),                 &
+2860,2868d2702
+<             if (semi_implicit_Tsfc) then
+<                if (present(dfsurfdT)) dfsurfdTs_cpl = dfsurfdT(n)
+<                if (present(dflatdT))  dflatdTs_cpl  = dflatdT(n)
+<                fsurf_cpl     = fsurfn_f(n)
+<                flat_cpl      = flatn_f(n)
+<                fsurf_cpl0    = fsurf_cpl
+<                flat_cpl0     = flat_cpl
+<             endif
+< 
+2873c2707
+<                                  apond=apond     (n), hpond=hpnd          (n), &
+---
+>                                  apond=apnd      (n), hpond=hpnd          (n), &
+2895c2729
+<                                  mlt_onset=mlt_onset, frz_onset=frz_onset,     &
+---
+>                                  mlt_onset=mlt_onset, frz_onset=frz_onset    , &
+2897,2899c2731
+<                                  prescribed_ice=prescribed_ice,                &
+<                                  dpnd_flush=l_dpnd_flushn,                     &
+<                                  dpnd_expon=l_dpnd_exponn )
+---
+>                                  prescribed_ice=prescribed_ice)
+2907,2917d2738
+<             ! Translate changes in apond into apnd tracer
+<             if (tr_pond_lvl) then
+<                if (alvl(n) > puny) then
+<                   apnd(n) = max(apond(n) / alvl(n), c1)
+<                else
+<                   apnd(n) = c0
+<                endif
+<             else
+<                apnd(n) = apond(n)
+<             endif
+< 
+3012,3040c2833
+<                                        meltsliqn     = l_meltsliqn(n), &
+<                                        dpnd_freebdn  = l_dpnd_freebdn, &
+<                                        dpnd_initialn = l_dpnd_initialn,&
+<                                        dpnd_dlidn    = l_dpnd_dlidn,   &
+<                                        dpnd_flushn   = l_dpnd_flushn)
+<                if (icepack_warnings_aborted(subname)) return
+< 
+<             elseif (tr_pond_sealvl) then
+<                call compute_ponds_sealvl(dt=dt,          &
+<                                        meltt=melttn (n), &
+<                                        melts=meltsn (n), &
+<                                        frain=frain,      &
+<                                        Tair=Tair,        &
+<                                        fsurfn=fsurfn(n), &
+<                                        dhs=dhsn     (n), &
+<                                        ffrac=ffracn (n), &
+<                                        aicen=aicen  (n), &
+<                                        vicen=vicen  (n), &
+<                                        vsnon=vsnon  (n), &
+<                                        qicen=zqin (:,n), &
+<                                        sicen=zSin (:,n), &
+<                                        Tsfcn=Tsfc   (n), &
+<                                        apnd=apnd    (n), &
+<                                        hpnd=hpnd    (n), &
+<                                        ipnd=ipnd    (n), &
+<                                        meltsliqn    = l_meltsliqn(n), &
+<                                        dpnd_freebdn = l_dpnd_freebdn, &
+<                                        dpnd_dlidn   = l_dpnd_dlidn,   &
+<                                        dpnd_flushn  = l_dpnd_flushn)
+---
+>                                        meltsliqn=l_meltsliqn(n))
+3086,3093d2878
+<             l_fswthrun_uvrdr = c0
+<             l_fswthrun_uvrdf = c0
+<             l_fswthrun_pardr = c0
+<             l_fswthrun_pardf = c0
+<             if (present(fswthrun_uvrdr)) l_fswthrun_uvrdr = fswthrun_uvrdr(n)
+<             if (present(fswthrun_uvrdf)) l_fswthrun_uvrdf = fswthrun_uvrdf(n)
+<             if (present(fswthrun_pardr)) l_fswthrun_pardr = fswthrun_pardr(n)
+<             if (present(fswthrun_pardf)) l_fswthrun_pardf = fswthrun_pardf(n)
+3113,3116d2897
+<                                fswthrun_uvrdr=l_fswthrun_uvrdr,     &
+<                                fswthrun_uvrdf=l_fswthrun_uvrdf,     &
+<                                fswthrun_pardr=l_fswthrun_pardr,     &
+<                                fswthrun_pardf=l_fswthrun_pardf,     &
+3133,3136d2913
+<                                fswthru_uvrdr=fswthru_uvrdr,         &
+<                                fswthru_uvrdf=fswthru_uvrdf,         &
+<                                fswthru_pardr=fswthru_pardr,         &
+<                                fswthru_pardf=fswthru_pardf,         &
+3151,3161c2928
+<                                fiso_evapn=fiso_evapn,               &
+<                                dpnd_flush=dpnd_flush,               &
+<                                dpnd_flushn=l_dpnd_flushn,           &
+<                                dpnd_expon=dpnd_expon,               &
+<                                dpnd_exponn=l_dpnd_exponn,           &
+<                                dpnd_freebd=dpnd_freebd,             &
+<                                dpnd_freebdn=l_dpnd_freebdn,         &
+<                                dpnd_initial=dpnd_initial,           &
+<                                dpnd_initialn=l_dpnd_initialn,       &
+<                                dpnd_dlid=dpnd_dlid,                 &
+<                                dpnd_dlidn=l_dpnd_dlidn)
+---
+>                                fiso_evapn=fiso_evapn)
+3167,3172c2934
+<          if (present(dsnown)       ) dsnown       (n) = l_dsnown
+<          if (present(dpnd_flushn)  ) dpnd_flushn  (n) = l_dpnd_flushn
+<          if (present(dpnd_exponn)  ) dpnd_exponn  (n) = l_dpnd_exponn
+<          if (present(dpnd_freebdn) ) dpnd_freebdn (n) = l_dpnd_freebdn
+<          if (present(dpnd_initialn)) dpnd_initialn(n) = l_dpnd_initialn
+<          if (present(dpnd_dlidn)   ) dpnd_dlidn   (n) = l_dpnd_dlidn
+---
+>          if (present(dsnown      )) dsnown(n)    = l_dsnown
+diff -r Icepack/columnphysics/icepack_tracers.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_tracers.F90
+12d11
+<       use icepack_parameters, only: pndhyps, pndfrbd, pndhead, pndmacr
+99c98,99
+<          nt_zbgc_frac = 0    ! fraction of tracer in the mobile phase
+---
+>          nt_zbgc_frac = 0, & ! fraction of tracer in the mobile phase
+>          nt_bgc_S     = 0    ! Bulk salinity in fraction ice with dynamic salinity (Bio grid) (deprecated)
+108d107
+<          tr_pond_sealvl=.false., & ! if .true., use sealvl pond parameterization
+210c209
+<            tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, tr_pond_sealvl_in, &
+---
+>            tr_pond_in, tr_pond_lvl_in, tr_pond_topo_in, &
+223d221
+<              tr_pond_sealvl_in,& ! if .true., use sealvl pond parameteriztion
+252d249
+<         if (present(tr_pond_sealvl_in)) tr_pond_sealvl = tr_pond_sealvl_in
+271,293d267
+<         ! tcraig, July, 2025
+<         ! This should not be here.  These options should either
+<         ! - be moved to namelist
+<         ! - be removed and have all the features selected by tr_pond_* values
+<         !
+<         ! Because we don't actually know what options work for the various
+<         ! pond schemes (beyond the settings below), and we don't know which
+<         ! options we want to be chooseable overall, we are leaving the declarations
+<         ! in icepack_parameters and we are hardwiring them here so they will
+<         ! be consistent with the tr_pond_sealvl settings as best as we know.
+< 
+<         if (tr_pond_sealvl) then
+<            pndhyps = 'sealevel'
+<            pndfrbd = 'category'
+<            pndhead = 'hyps'
+<            pndmacr = 'head'
+<         else
+<            pndhyps = 'sealevel'
+<            pndfrbd = 'floor'
+<            pndhead = 'perched'
+<            pndmacr = 'lambda'
+<         endif
+< 
+302c276
+<            tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, tr_pond_sealvl_out, &
+---
+>            tr_pond_out, tr_pond_lvl_out, tr_pond_topo_out, &
+315d288
+<              tr_pond_sealvl_out,& ! if .true., use sealvl pond parameterization
+344d316
+<         if (present(tr_pond_sealvl_out)) tr_pond_sealvl_out = tr_pond_sealvl
+384d355
+<         write(iounit,*) "  tr_pond_sealvl = ",tr_pond_sealvl
+423c394
+<            nlt_bgc_PON_in, nt_zbgc_frac_in, nlt_chl_sw_in, &
+---
+>            nlt_bgc_PON_in, nt_zbgc_frac_in, nt_bgc_S_in, nlt_chl_sw_in, &
+464a436
+>              nt_bgc_S_in,   & ! (deprecated, was related to zsalinity)
+545a518
+>         if (present(nt_bgc_S_in)     ) nt_bgc_S      = nt_bgc_S_in
+783c756
+<            nlt_bgc_PON_out, nt_zbgc_frac_out, nlt_chl_sw_out, &
+---
+>            nlt_bgc_PON_out, nt_zbgc_frac_out, nt_bgc_S_out, nlt_chl_sw_out, &
+824a798
+>              nt_bgc_S_out,   & ! (deprecated, was related to zsalinity)
+903a878
+>         if (present(nt_bgc_S_out)     ) nt_bgc_S_out      = nt_bgc_S
+981a957
+>         write(iounit,*) "  nt_bgc_S      = ",nt_bgc_S," (deprecated)"
+1230c1206
+<       integer (kind=int_kind), dimension (:), intent(in) :: &
+---
+>       integer (kind=int_kind), dimension (ntrcr), intent(in) :: &
+1249c1225
+<       real (kind=dbl_kind), dimension (:), intent(out) :: &
+---
+>       real (kind=dbl_kind), dimension (ntrcr), intent(out) :: &
+diff -r Icepack/columnphysics/icepack_wavefracspec.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_wavefracspec.F90
+34d33
+<       use icepack_parameters, only: wave_spec_type, wave_height_type
+36,37c35
+<       use icepack_warnings, only: warnstr, icepack_warnings_add
+<       use icepack_warnings, only: icepack_warnings_setabort,  icepack_warnings_aborted
+---
+>       use icepack_warnings, only: warnstr, icepack_warnings_add,  icepack_warnings_aborted
+184c182
+<       subroutine icepack_step_wavefracture(                  &
+---
+>       subroutine icepack_step_wavefracture(wave_spec_type,   &
+188c186,190
+<                   trcrn,         d_afsd_wave,     wave_height)
+---
+>                   trcrn,         d_afsd_wave)
+> 
+> 
+>       character (len=char_len), intent(in) :: &
+>          wave_spec_type  ! type of wave spectrum forcing
+215,217d216
+<       real (kind=dbl_kind), intent(in), optional :: &
+<          wave_height     ! significant wave height (m)
+< 
+258,266c257
+<          ! set significant wave height
+<          if (present(wave_height)) then
+<             local_sig_ht = wave_height
+<          elseif (trim(wave_height_type) == 'coupled') then
+<             call icepack_warnings_add(subname//&
+<             ' ERROR: wave_height_type=coupled but no wave height data found')
+<             call icepack_warnings_setabort(.true.,__FILE__,__LINE__)
+<          endif
+< 
+---
+>       local_sig_ht = c4*SQRT(SUM(wave_spectrum(:)*dwavefreq(:)))
+274c265
+<          call wave_frac(nfreq,               &
+---
+>          call wave_frac(nfreq, wave_spec_type, &
+402c393
+<       subroutine wave_frac(nfreq, &
+---
+>       subroutine wave_frac(nfreq, wave_spec_type, &
+407a399,401
+> 
+>       character (len=char_len), intent(in) :: &
+>         wave_spec_type ! type of wave spectrum forcing
+diff -r Icepack/columnphysics/icepack_zbgc.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_zbgc.F90
+15c15
+<       !use icepack_parameters, only: depressT, rhosi, min_salin
+---
+>       !use icepack_parameters, only: depressT, rhosi, min_salin, salt_loss
+diff -r Icepack/columnphysics/icepack_zbgc_shared.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/icepack_zbgc_shared.F90
+591c591,592
+<                                iphin,        trcrn,      &
+---
+>                                iphin,                    &
+>                                trcrn,        aice_init,  &
+620c621,622
+<          vsnon          ! volume of snow(m)
+---
+>          vsnon      , & ! volume of snow(m)
+>          aice_init      ! initial concentration of ice
+diff -r Icepack/columnphysics/version.txt ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/columnphysics/version.txt
+1c1
+< ICEPACK 1.5.3
+---
+> ICEPACK 1.5.0

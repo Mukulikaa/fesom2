@@ -1,0 +1,258 @@
+diff -r Icepack/configuration/scripts/icepack.batch.csh ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/icepack.batch.csh
+67,91d66
+< else if (${ICE_MACHINE} =~ gadi*) then
+< if (${ICE_MACHINE_QUEUE} =~ *sr) then #sapphire rapids
+<   @ memuse = ( $ncores * 481 / 100 )
+< else if (${ICE_MACHINE_QUEUE} =~ *bw) then #broadwell
+<   @ memuse = ( $ncores * 457 / 100 )
+< else if (${ICE_MACHINE_QUEUE} =~ *sl) then 
+<   @ memuse = ( $ncores * 6 )
+< else #normal queues
+<   @ memuse = ( $ncores * 395 / 100 )
+< endif
+< cat >> ${jobfile} << EOFB
+< #PBS -q ${ICE_MACHINE_QUEUE}
+< #PBS -P ${ICE_MACHINE_PROJ}
+< #PBS -N ${ICE_CASENAME}
+< #PBS -l storage=gdata/${ICE_MACHINE_PROJ}+scratch/${ICE_MACHINE_PROJ}+gdata/ik11
+< #PBS -l ncpus=${ncores}
+< #PBS -l mem=${memuse}gb
+< #PBS -l walltime=${ICE_RUNLENGTH}
+< #PBS -j oe 
+< #PBS -W umask=003
+< #PBS -o ${ICE_CASEDIR}
+< source /etc/profile.d/modules.csh
+< module use `echo ${MODULEPATH} | sed 's/:/ /g'` #copy the users modules
+< EOFB
+< 
+diff -r Icepack/configuration/scripts/icepack_in ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/icepack_in
+10,14d9
+<     hi_init_slab   = 2.0
+<     hsno_init_slab = 0.0
+<     hbar_init_itd  = 3.0
+<     hsno_init_itd  = 0.25
+<     sst_init       = -1.8
+25,26d19
+<     itd_area_min   = 1.e-11
+<     itd_mass_min   = 1.e-10
+39d31
+<     tr_pond_sealvl = .false.
+61d52
+<     tscale_pnd_drain  = 10.0d0
+70c61
+<     albsnowi        = 0.70
+---
+>     albsnowi        = 0.70 
+93d83
+<     apnd_sl         = 0.27d0
+109,111d98
+<     snw_growth_wet  = 4.22e5
+<     drsnw_min       =  0.0
+<     snwliq_max      =  0.033
+135d121
+<     wave_height_type= 'none'
+138,140d123
+<     sss_fixed       = 34.0
+<     qdp_fixed       = 0.0
+<     hmix_fixed      = 20.0
+157,159d139
+<     precalc_forc    = .false.
+<     semi_implicit_Tsfc = .false.
+<     vapor_flux_correction = .false.
+179a160
+>     solve_zsal      = .false.
+189c170
+<     tr_bgc_Fe       = .false.
+---
+>     tr_bgc_Fe       = .false. 
+192a174,175
+>     grid_oS         = 0.0
+>     l_skS           = 0.028
+195,196c178,179
+<     frazil_scav     = 0.8
+<     ratio_Si2N_diatoms = 1.8
+---
+>     frazil_scav     = 0.8  
+>     ratio_Si2N_diatoms = 1.8                         
+199,200c182,183
+<     ratio_S2N_diatoms  = 0.03
+<     ratio_S2N_sp       = 0.03
+---
+>     ratio_S2N_diatoms  = 0.03  
+>     ratio_S2N_sp       = 0.03 
+205c188
+<     ratio_Fe2N_diatoms = 0.023
+---
+>     ratio_Fe2N_diatoms = 0.023 
+diff -r Icepack/configuration/scripts/machines/env.derecho_gnu ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/env.derecho_gnu
+13c13
+< module load ncarenv/24.12
+---
+> module load ncarenv/23.06
+15c15
+< module load gcc/12.4.0
+---
+> module load gcc/12.2.0
+20,21c20
+< module load cray-libsci/24.03.0
+< module load lcov
+---
+> module load cray-libsci/23.02.1.1
+42c41
+< setenv ICE_MACHINE_ENVINFO "gcc 12.4.0, netcdf4.9.2"
+---
+> setenv ICE_MACHINE_ENVINFO "gcc 12.2.0 20220819, netcdf4.9.2"
+53,72d51
+< 
+< # For lcov
+< #set lcovpath = "/glade/u/home/tcraig/bin"
+< #set lcovp5l  = "/glade/u/home/tcraig/usr/lib/perl5/site_perl/5.18.2/x86_64-linux-thread-multi"
+< 
+< #if ($?PATH) then
+< #  if ("$PATH" !~ "*${lcovpath}*") then
+< #    setenv PATH ${PATH}:$lcovpath
+< #  endif
+< #else
+< #  setenv PATH $lcovpath
+< #endif
+< 
+< #if ($?PERL5LIB) then
+< #  if ("$PERL5LIB" !~ "*${lcovp5l}*") then
+< #    setenv PERL5LIB ${PERL5LIB}:$lcovp5l
+< #  endif
+< #else
+< #  setenv PERL5LIB $lcovp5l
+< #endif
+diff -r Icepack/configuration/scripts/machines/env.discover_intel ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/env.discover_intel
+50c50
+< setenv ICE_MACHINE_ACCT g0609
+---
+> setenv ICE_MACHINE_ACCT g0613
+Only in Icepack/configuration/scripts/machines: env.gadi_intel
+diff -r Icepack/configuration/scripts/machines/env.perlmutter_cray ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/env.perlmutter_cray
+21c21
+< module load PrgEnv-cray/8.5.0
+---
+> module load PrgEnv-cray
+23c23
+< module load cce/17.0.0
+---
+> module load cce/15.0.1
+26,27c26,27
+< module load cray-hdf5/1.12.2.9
+< module load cray-netcdf/4.9.0.9
+---
+> module load cray-hdf5/1.12.2.3
+> module load cray-netcdf/4.9.0.3
+40c40
+< setenv ICE_MACHINE_ENVINFO "Cray clang/Fortran 17.0.0, netcdf4.9.0.9"
+---
+> setenv ICE_MACHINE_ENVINFO "Cray clang/Fortran 15.0.1, netcdf4.9.0.3"
+diff -r Icepack/configuration/scripts/machines/env.perlmutter_gnu ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/env.perlmutter_gnu
+21c21
+< module load PrgEnv-gnu/8.5.0
+---
+> module load PrgEnv-gnu
+23c23
+< module load gcc-native/12.3
+---
+> module load gcc/11.2.0
+26,27c26,27
+< module load cray-hdf5/1.12.2.9
+< module load cray-netcdf/4.9.0.9
+---
+> module load cray-hdf5/1.12.2.3
+> module load cray-netcdf/4.9.0.3
+diff -r Icepack/configuration/scripts/machines/env.perlmutter_intel ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/env.perlmutter_intel
+21c21
+< module load PrgEnv-intel/8.5.0
+---
+> module load PrgEnv-intel
+23c23
+< module load intel/2023.2.0
+---
+> module load intel/2023.1.0
+26,27c26,27
+< module load cray-hdf5/1.12.2.9
+< module load cray-netcdf/4.9.0.9
+---
+> module load cray-hdf5/1.12.2.3
+> module load cray-netcdf/4.9.0.3
+40c40
+< setenv ICE_MACHINE_ENVINFO "ifort 2021.10.0 20230609, netcdf4.9.0.9"
+---
+> setenv ICE_MACHINE_ENVINFO "ifort 2021.9.0 20230302, netcdf4.9.0.3"
+diff -r Icepack/configuration/scripts/machines/Macros.derecho_gnu ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/machines/Macros.derecho_gnu
+14,18d13
+< ifeq ($(ICE_COVERAGE), true)
+<   FFLAGS   += -O0 -g -fprofile-arcs -ftest-coverage
+<   CFLAGS   += -O0 -g -coverage
+<   LDFLAGS  += -g -ftest-coverage -fprofile-arcs
+< else
+23,26d17
+< else
+<   FFLAGS   += -O2
+<   CFLAGS   += -O2
+< endif
+Only in Icepack/configuration/scripts/machines: Macros.gadi_intel
+Only in Icepack/configuration/scripts/options: set_nml.atmmosaic
+diff -r Icepack/configuration/scripts/options/set_nml.fsd1 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/options/set_nml.fsd1
+3d2
+< wave_height_type = 'none'
+diff -r Icepack/configuration/scripts/options/set_nml.fsd12 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/options/set_nml.fsd12
+3d2
+< wave_height_type = 'internal'
+Only in Icepack/configuration/scripts/options: set_nml.ocnmosaic
+Only in Icepack/configuration/scripts/options: set_nml.pondsealvl
+diff -r Icepack/configuration/scripts/set_version_number.csh ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/set_version_number.csh
+13d12
+< set cdate = `date +%Y-%m-%d`
+20,25d18
+< 
+< cp -f .zenodo.json .zenodo.json.bu
+< 
+< sed -i 's|^\(.*CICE-Consortium/Icepack:\).*$|\1 Icepack '${versno}'", | g' .zenodo.json
+< sed -i 's|^\(.*"version":\).*$|\1 "'${versno}'", | g' .zenodo.json
+< sed -i 's|^\(.*"publication_date":\).*$|\1 "'${cdate}'", | g' .zenodo.json
+diff -r Icepack/configuration/scripts/tests/base_suite.ts ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/tests/base_suite.ts
+28d27
+< smoke          col     1x1        debug,ionetcdf,atmmosaic,ocnmosaic
+32d30
+< restart        col     1x1        pondsealvl
+diff -r Icepack/configuration/scripts/tests/icepack.lcov.csh ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/tests/icepack.lcov.csh
+9,21c9
+< if ("${useparser}" =~ "true") then
+<   #local parsing script
+<   mkdir ./${lcovhtmldir}
+<   ./parse_lcov.sh >! ./${lcovhtmldir}/${lcovhtmldir}.txt
+<   cat >! ./${lcovhtmldir}/index.html <<EOF
+< 
+< <embed type="text/plain" src="${lcovhtmldir}.txt"  width="800" height="20000">
+< 
+< EOF
+< else
+<   #genhtml
+<   genhtml -o ./${lcovhtmldir} --precision 2 -t "${report_name}" total.info
+< endif
+---
+> genhtml -o ./${lcovhtmldir} --precision 2 -t "${report_name}" total.info
+29,34c17
+< if ("${useparser}" =~ "true") then
+<   set covp = `grep "**TOTAL**" ${lcovhtmldir}/${lcovhtmldir}.txt | cut -d \% -f 1`
+< else
+<   set covp = `grep -i headerCovTableEntry ${lcovhtmldir}/index.html | grep % | head -1 | cut -d \> -f 2 | cut -d \& -f 1`
+<   set covp = "${covp}%"
+< endif
+---
+> set covp  = `grep -i headerCovTableEntry ${lcovhtmldir}/index.html | grep % | head -1 | cut -d \> -f 2 | cut -d % -f 1`
+Only in Icepack/configuration/scripts/tests: parse_lcov.sh
+diff -r Icepack/configuration/scripts/tests/poll_queue.csh ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/scripts/tests/poll_queue.csh
+16,18c16,19
+<         set qstatus = `${ICE_MACHINE_QSTAT} $job | grep $job | wc -l`
+< #        echo $job $qstatus
+<         if ($qstatus == 0) then
+---
+>       ${ICE_MACHINE_QSTAT} $job >&/dev/null
+>       set qstatus = $status
+> #      echo $job $qstatus
+>       if ($qstatus != 0) then

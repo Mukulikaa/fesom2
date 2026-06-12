@@ -1,0 +1,228 @@
+&setup_nml
+    hi_init_slab   = 2.0
+    hsno_init_slab = 0.0
+    hbar_init_itd  = 3.0
+    hsno_init_itd  = 0.25
+    sst_init       = -1.8
+    cpl_bgc        = .false.
+    conserv_check  = .false.
+    itd_area_min   = 1.e-11
+    itd_mass_min   = 1.e-10
+/
+
+&grid_nml
+    kcatbound    = 1
+/
+
+&thermo_nml
+    kitd              = 1
+    ktherm            = 2
+    hi_min            = 0.01
+    ksno              = 0.3d0
+    conduct           = 'bubbly'
+    a_rapid_mode      =  0.5e-3
+    Rac_rapid_mode    =    10.0
+    aspect_rapid_mode =     1.0
+    dSdt_slow_mode    = -5.0e-8
+    phi_c_slow_mode   =    0.05
+    phi_i_mushy       =    0.85
+    Tliquidus_max     = -0.1d0
+    floediam          = 300.0d0
+    hfrazilmin        = 0.05d0
+    tscale_pnd_drain  = 10.0d0
+/
+
+&shortwave_nml
+    shortwave       = 'dEdd'
+    albedo_type     = 'ccsm3'
+    albocn          = 0.06 ! variate!!!
+    albicev         = 0.78
+    albicei         = 0.36
+    albsnowv        = 0.98
+    albsnowi        = 0.70
+    ahmax           = 0.3
+    R_ice           = 0.
+    R_pnd           = 0.
+    R_snw           = 1.5 ! not used if snwgrain=.true.
+    dT_mlt          = 1.5 ! not used if snwgrain=.true.
+    rsnw_mlt        = 1500. ! not used if snwgrain=.true.
+    kalg            = 0.6
+    sw_redist       = .false.
+    sw_frac         = 0.9d0
+    sw_dtemp        = 0.02d0
+    snw_ssp_table   = 'test'
+/
+
+&ponds_nml
+    hp1             = 0.01
+    hs0             = 0.
+    hs1             = 0.03
+    dpscale         = 1.e-3
+    frzpnd          = 'hlid'
+    rfracmin        = 0.15
+    rfracmax        = 1.
+    pndaspect       = 0.8
+    apnd_sl         = 0.27d0
+/
+
+&snow_nml
+    snwredist       = 'snwITDrdg'
+    snwgrain        = .true.
+    use_smliq_pnd   = .false.
+    rsnw_fall       =  100.0
+    rsnw_tmax       = 1500.0
+    rhosnew         =  100.0
+    rhosmin         =  100.0
+    rhosmax         =  450.0
+    windmin         =   10.0
+    drhosdwind      =   27.3
+    snwlvlfac       =    0.3
+    snw_aging_table = 'test'
+    snw_growth_wet  = 4.22e5
+    drsnw_min       =  0.0
+    snwliq_max      =  0.033
+/
+
+&forcing_nml
+    formdrag        = .false.
+    atmbndy         = 'similarity'
+    calc_strair     = .true.
+    calc_Tsfc       = .true.
+    highfreq        = .false.
+    natmiter        = 5
+    atmiter_conv    = 0.0d0
+    ustar_min       = 0.0005
+    calc_dragio     = .false.
+    dragio          = 0.00536
+    emissivity      = 0.985
+    fbot_xfer_type  = 'constant'
+    cpl_frazil      = 'fresh_ice_correction'
+    update_ocn_f    = .true.
+    l_mpond_fresh   = .false.
+    congel_freeze   = 'two-step'
+    tfrz_option     = 'mushy' ! options 'linear_salt'/'mushy'
+    ice_ref_salinity = 4.0
+    saltflux_option = 'constant'
+    oceanmixed_ice  = .true.
+    wave_spec_type  = 'none'
+    wave_height_type= 'none'
+    sss_fixed       = 34.0
+    qdp_fixed       = 0.0
+    hmix_fixed      = 20.0
+    semi_implicit_Tsfc = .false.
+    vapor_flux_correction = .false.
+/
+
+&dynamics_nml
+    kstrength       = 1
+    krdg_partic     = 1
+    krdg_redist     = 1
+    mu_rdg          = 3
+    Cf              = 17.
+/
+
+&zbgc_nml
+    tr_brine        = .false.
+    tr_zaero        = .false.
+    modal_aero      = .false.
+    skl_bgc         = .false.
+    z_tracers       = .false.
+    dEdd_algae      = .false.
+    solve_zbgc      = .false.
+    bgc_flux_type   = 'Jin2006'
+    scale_bgc       = .false.
+    solve_zsal      = .false.
+    tr_bgc_Nit      = .false.
+    tr_bgc_C        = .false.
+    tr_bgc_chl      = .false.
+    tr_bgc_Am       = .false.
+    tr_bgc_Sil      = .false.
+    tr_bgc_DMS      = .false.
+    tr_bgc_PON      = .false.
+    tr_bgc_hum      = .false.
+    tr_bgc_DON      = .false.
+    tr_bgc_Fe       = .false.
+/
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!                Icepack output namelist                    !!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+&nml_listsize
+    io_listsize	    = 100
+/
+
+&nml_list_icepack
+io_list_icepack =  'aice      ',1, 'm', 4, ! Sea ice concentration
+                   'vice      ',1, 'm', 4, ! Volume per unit area of ice
+                   'vsno      ',1, 'm', 4, ! Volume per unit area of snow
+                   'Tsfc      ',1, 'm', 4, ! Sea ice surface temperature
+                   'Tf        ',1, 'm', 4, ! Ice or snow surface freezing temperature
+                   'iage      ',1, 'm', 4, ! Sea ice age
+                   'rdg_conv  ',1, 'm', 4, ! Convergence term for ridging
+                   'rdg_shear ',1, 'm', 4, ! Shear term for ridging
+		   'fbot      ',1, 'm', 4, ! Net bottom heat flux
+		   'fsurf     ',1, 'm', 4, ! Net surface heat flux
+		   'fcondtop  ',1, 'm', 4, ! Ice/snow surface conductive flux
+		   'fcondbot  ',1, 'm', 4, ! Ice bottom heat conductive flux	      
+		   'fsens     ',1, 'm', 4, ! Surface sensible heat flux	 
+		   'flat      ',1, 'm', 4, ! Surface latent heat flux	     
+		   'fhocn     ',1, 'm', 4, ! Net heat flux into ocean
+		   'Tbot      ',1, 'm', 4, ! Ice bottom temperature
+		   'dsnow     ',1, 'm', 4, ! Change in snow_depth
+		   'congel    ',1, 'm', 4, ! Basal ice growth rate
+		   'snoice    ',1, 'm', 4, ! Snow ice formation rate
+		   'frazil    ',1, 'm', 4, ! Frazil ice growth rate
+		   'meltt     ',1, 'm', 4, ! Surface ice melt rate
+		   'meltb     ',1, 'm', 4, ! Bottom ice melt rate
+		   'melts     ',1, 'm', 4, ! Surface snow melt rate
+		   'meltl     ',1, 'm', 4, ! Lateral ice melt rate
+		   'rside     ',1, 'm', 4, ! Ice fraction lateral melt
+		   'daidtt    ',1, 'm', 4, ! Thermodynamic ice area tendency
+		   'dvidtt    ',1, 'm', 4, ! Thermodynamic ice volume tentendy
+		   'dagedtt   ',1, 'm', 4, ! Thermodynamic ice age tendency
+		   'mlt_onset ',1, 'm', 4, ! Day of year that surface melt begins
+		   'frz_onset ',1, 'm', 4, ! Day of year that freezing begins (congel or frazil)
+		   'albice    ',1, 'm', 4, ! Bare ice albedo
+		   'albsno    ',1, 'm', 4, ! Snow albedo
+		   'snowfrac  ',1, 'm', 4, ! Snow fraction used in radiation
+		   'apeff_ai  ',1, 'm', 4, ! Effective pond area used for radiation calculation
+		   'alvdr     ',1, 'm', 4, ! Visible, direct fraction of radiation
+		   'alvdf     ',1, 'm', 4, ! Visible, diffuse fraction of radiation
+		   'alidr     ',1, 'm', 4, ! Near-IR, direct fraction of radiation
+		   'alidf     ',1, 'm', 4, ! Near-IR, diffuse fraction of radiation
+		   'FY        ',1, 'm', 4, ! First year ice
+                   'lvl       ',1, 'm', 4, ! Level ice area and volume
+                   !'pond_topo ',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+                   !'pond_lvl  ',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+		   'pond_slvl ',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+		   'brine     ',1, 'm', 4, ! Volume fraction of ice with dynamic salt
+                   'qice      ',1, 'm', 4, ! Sea ice enthalpy
+                   'sice      ',1, 'm', 4, ! Sea ice salinity
+                   'qsno      ',1, 'm', 4, ! Snow enthalpy
+		   'smice     ',1, 'm', 4, ! Ice mass in snow
+                   'smliq     ',1, 'm', 4, ! Liquid mass in snow
+                   'rhos      ',1, 'm', 4, ! Effective snow density
+		   'rsnw      ',1, 'm', 4, ! Snow grain radius
+		   'smicen    ',1, 'm', 4, ! Ice mass in snow in layer
+		   'smliqn    ',1, 'm', 4, ! Liquid mass in snow in layer
+                   'rhosn     ',1, 'm', 4, ! Effective snow density in layer
+		   'rsnwn     ',1, 'm', 4, ! Snow grain radius in layer
+                   'uvel      ',1, 'm', 4, ! x-component of sea ice velocity
+                   'vvel      ',1, 'm', 4, ! y-component of sea ice velocity
+		   ! variables for each ice classe
+		   'aicen     ',1, 'm', 4, ! Sea ice concentration
+                   'vicen     ',1, 'm', 4, ! Volume per unit area of ice
+                   'vsnon     ',1, 'm', 4, ! Volume per unit area of snow
+                   'Tsfcn     ',1, 'm', 4, ! Sea ice surf. temperature
+                   !'iagen     ',1, 'm', 4, ! Sea ice age
+                   !'FYn       ',1, 'm', 4, ! First year ice
+                   !'lvln      ',1, 'm', 4, ! Ridged sea ice area and volume
+                   !'pond_topon',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+                   !'pond_lvln ',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+		   'pond_slvln',1, 'm', 4, ! Melt ponds area, volume and refrozen lid thickness
+                   'brinen    ',1, 'm', 4, ! Volume fraction of ice with dynamic salt
+                   'qicen     ',1, 'm', 4, ! Sea ice enthalpy
+                   'sicen     ',1, 'm', 4, ! Sea ice salinity
+                   'qsnon     ',1, 'm', 4, ! Snow enthalpy
+/

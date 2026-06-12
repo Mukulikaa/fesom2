@@ -1,0 +1,363 @@
+ (set_icepack) Reading setup_nml
+ (set_icepack) Reading grid_nml
+ (set_icepack) Reading thermo_nml
+ (set_icepack) Reading shortwave_nml
+ (set_icepack) Reading ponds_nml
+ (set_icepack) Reading snow_nml
+ (set_icepack) Reading forcing_nml
+ (set_icepack) Reading dynamics_nml
+ (set_icepack) Reading namelist completed
+  
+ -----------------------------------
+   ICEPACK model diagnostic output  
+ -----------------------------------
+  
+  Document ice_in namelist parameters:
+  ==================================== 
+  
+  hi_init_slab              =     2.000000
+  hsno_init_slab            =     0.000000
+  hbar_init_itd             =     3.000000
+  hsno_init_itd             =     0.250000
+  sst_init                  =    -1.800000
+  conserv_check             =        F
+  itd_area_min              =    0.100E-10
+  itd_mass_min              =    0.100E-09
+  kitd                      =        1
+  kcatbound                 =        1
+  ndtd                      =        1
+  kstrength                 =        1
+  krdg_partic               =        1
+  krdg_redist               =        1
+  mu_rdg                    =        3.00
+  Cf                        =       17.00
+  ksno                      =        0.30
+  shortwave                 =     dEdd
+ -----------------------------
+ BGC coupling is switched OFF 
+ not implemented with FESOM2  
+ -----------------------------
+  albocn                    =        0.06
+  R_ice                     =        0.00
+  R_pnd                     =        0.00
+  R_snw                     =        1.50
+  dT_mlt                    =        1.50
+  rsnw_mlt                  =     1500.00
+  kalg                      =        0.60
+  hp1                       =        0.01
+  hs0                       =        0.00
+  sw_redist                 =        F
+  sw_frac                   =     0.900000
+  sw_dtemp                  =     0.020000
+  rhos                      =      290.00
+  rhoi                      =      910.00
+  rhow                      =     1025.00
+  rhofwt                    =     1000.00
+  rfracmin                  =        0.15
+  rfracmax                  =        1.00
+  hs1                       =        0.03
+  dpscale                   =        0.00
+  frzpnd                    =     hlid
+  pndaspect                 =        0.80
+  apnd_sl                   =        0.27
+  snwredist                 = snwITDrd
+  snwgrain                  =        T
+  use_smliq_pnd             =        F
+  snw_aging_table           =     test
+  rsnw_fall                 =      100.00
+  rsnw_tmax                 =     1500.00
+  rhosnew                   =      100.00
+  rhosmin                   =      100.00
+  rhosmax                   =      450.00
+  windmin                   =       10.00
+  drhosdwind                =       27.30
+  snwlvlfac                 =        0.30
+  snw_growth_wet            =   422000.00
+  drsnw_min                 =        0.00
+  snwliq_max                =        0.03
+  ktherm                    =        2
+  emissivity                =     0.985000
+  zlvl_v                    =    10.000000
+  zlvl_s                    =     2.000000
+  a_rapid_mode              =     0.000500
+  Rac_rapid_mode            =    10.000000
+  aspect_rapid_mode         =     1.000000
+  dSdt_slow_mode            =   -0.500E-07
+  phi_c_slow_mode           =     0.050000
+  phi_i_mushy               =     0.850000
+  Tliquidus_max             =    -0.100000
+  tscale_pnd_drain          =    10.000000
+  atmbndy                   = similari
+  formdrag                  =        F
+  highfreq                  =        F
+  natmiter                  =        5
+  atmiter_conv              =     0.000000
+  calc_strair               =        T
+  calc_Tsfc                 =        T
+  calc_dragio               =        F
+  dragio                    =     0.005360
+  semi_implicit_Tsfc        =        F
+  vapor_flux_correction     =        F
+  floediam                  =   300.000000
+  hfrazilmin                =     0.050000
+  cpl_frazil                = fresh_ic
+  update_ocn_f              =        T
+  wave_spec                 =        F
+  l_mpond_fresh             =        F
+  ustar_min                 =     0.000500
+  hi_min                    =     0.010000
+  fbot_xfer_type            = constant
+  oceanmixed_ice            =        T
+  tfrz_option               =    mushy
+  saltflux_option           = constant
+  ice_ref_salinity          =     4.000000
+  congel_freeze             = two-step
+  tr_iage                   =        T
+  tr_FY                     =        T
+  tr_lvl                    =        T
+  tr_pond_lvl               =        F
+  tr_pond_topo              =        F
+  tr_pond_sealvl            =        T
+  tr_snow                   =        T
+  tr_aero                   =        F
+  tr_fsd                    =        F
+  tr_iso                    =        F
+  
+  max_ntrcr                 =       39
+  ntrcr                     =       36
+  
+  nt_qice                   =        2
+  nt_qsno                   =        6
+  nt_sice                   =       10
+  
+  ncat                      =        5
+  nilyr                     =        4
+  nslyr                     =        4
+  nblyr                     =        4
+  nfsd                      =        1
+  n_iso                     =        0
+  n_aero                    =        0
+  
+ (icepack_write_tracer_flags):
+   tr_iage =  T
+   tr_FY   =  T
+   tr_lvl  =  T
+   tr_pond =  T
+   tr_pond_lvl  =  F
+   tr_pond_topo =  F
+   tr_pond_sealvl =  T
+   tr_snow    =  T
+   tr_fsd     =  F
+   tr_iso     =  F
+   tr_aero    =  F
+   tr_brine   =  F
+   tr_zaero   =  F
+   tr_bgc_Nit =  F
+   tr_bgc_N   =  F
+   tr_bgc_DON =  F
+   tr_bgc_C   =  F
+   tr_bgc_chl =  F
+   tr_bgc_Am  =  F
+   tr_bgc_Sil =  F
+   tr_bgc_DMS =  F
+   tr_bgc_Fe  =  F
+   tr_bgc_hum =  F
+   tr_bgc_PON =  F
+ (icepack_write_tracer_sizes):
+   fixed parameters: 
+   max_algae_out =           3
+   max_dic_out   =           1
+   max_doc_out   =           3
+   max_don_out   =           1
+   max_fe_out    =           2
+   nmodal1_out   =          10
+   nmodal2_out   =           8
+   max_iso_out   =           3
+   max_aero_out  =           6
+   max_nbtrcr_out=          29
+   model defined parameters: 
+   ncat      =            5
+   nilyr     =            4
+   nslyr     =            4
+   nblyr     =            4
+   nfsd      =            1
+   n_algae   =            0
+   n_DOC     =            0
+   n_DON     =            0
+   n_DIC     =            0
+   n_fed     =            0
+   n_fep     =            0
+   n_zaero   =            0
+   n_aero    =            0
+   n_iso     =            0
+   ntrcr     =           36
+   ntrcr_o   =            0
+   nbtrcr    =            0
+   nbtrcr_sw =            0
+ (icepack_write_tracer_indices):
+   nt_Tsfc =            1
+   nt_qice =            2
+   nt_qsno =            6
+   nt_sice =           10
+   nt_fbri =            0
+   nt_iage =           14
+   nt_FY   =           15
+   nt_alvl =           16
+   nt_vlvl =           17
+   nt_apnd =           18
+   nt_hpnd =           19
+   nt_ipnd =           20
+   nt_fsd  =           39
+   nt_smice      =           21
+   nt_smliq      =           25
+   nt_rhos       =           29
+   nt_rsnw       =           33
+   nt_isosno     =           39
+   nt_isoice     =           39
+   nt_aero       =           39
+   nt_bgc_Nit    =            0
+   nt_bgc_Am     =            0
+   nt_bgc_Sil    =            0
+   nt_bgc_DMSPp  =            0
+   nt_bgc_DMSPd  =            0
+   nt_bgc_DMS    =            0
+   nt_bgc_hum    =            0
+   nt_bgc_PON    =            0
+   nlt_bgc_Nit   =            0
+   nlt_bgc_Am    =            0
+   nlt_bgc_Sil   =            0
+   nlt_bgc_DMSPp =            0
+   nlt_bgc_DMSPd =            0
+   nlt_bgc_DMS   =            0
+   nlt_bgc_hum   =            0
+   nlt_bgc_PON   =            0
+   nlt_chl_sw    =            0
+   nt_zbgc_frac  =            0
+   max_nbtrcr =           29
+   bio_index_o(k) =            1           0
+   bio_index(k)   =            1           0
+   bio_index_o(k) =            2           0
+   bio_index(k)   =            2           0
+   bio_index_o(k) =            3           0
+   bio_index(k)   =            3           0
+   bio_index_o(k) =            4           0
+   bio_index(k)   =            4           0
+   bio_index_o(k) =            5           0
+   bio_index(k)   =            5           0
+   bio_index_o(k) =            6           0
+   bio_index(k)   =            6           0
+   bio_index_o(k) =            7           0
+   bio_index(k)   =            7           0
+   bio_index_o(k) =            8           0
+   bio_index(k)   =            8           0
+   bio_index_o(k) =            9           0
+   bio_index(k)   =            9           0
+   bio_index_o(k) =           10           0
+   bio_index(k)   =           10           0
+   bio_index_o(k) =           11           0
+   bio_index(k)   =           11           0
+   bio_index_o(k) =           12           0
+   bio_index(k)   =           12           0
+   bio_index_o(k) =           13           0
+   bio_index(k)   =           13           0
+   bio_index_o(k) =           14           0
+   bio_index(k)   =           14           0
+   bio_index_o(k) =           15           0
+   bio_index(k)   =           15           0
+   bio_index_o(k) =           16           0
+   bio_index(k)   =           16           0
+   bio_index_o(k) =           17           0
+   bio_index(k)   =           17           0
+   bio_index_o(k) =           18           0
+   bio_index(k)   =           18           0
+   bio_index_o(k) =           19           0
+   bio_index(k)   =           19           0
+   bio_index_o(k) =           20           0
+   bio_index(k)   =           20           0
+   bio_index_o(k) =           21           0
+   bio_index(k)   =           21           0
+   bio_index_o(k) =           22           0
+   bio_index(k)   =           22           0
+   bio_index_o(k) =           23           0
+   bio_index(k)   =           23           0
+   bio_index_o(k) =           24           0
+   bio_index(k)   =           24           0
+   bio_index_o(k) =           25           0
+   bio_index(k)   =           25           0
+   bio_index_o(k) =           26           0
+   bio_index(k)   =           26           0
+   bio_index_o(k) =           27           0
+   bio_index(k)   =           27           0
+   bio_index_o(k) =           28           0
+   bio_index(k)   =           28           0
+   bio_index_o(k) =           29           0
+   bio_index(k)   =           29           0
+   max_algae =            3
+   nt_bgc_N(k)  =            1           0
+   nlt_bgc_N(k) =            1           0
+   nt_bgc_C(k)  =            1           0
+   nlt_bgc_C(k) =            1           0
+   nt_bgc_chl(k)  =            1           0
+   nlt_bgc_chl(k) =            1           0
+   nt_bgc_N(k)  =            2           0
+   nlt_bgc_N(k) =            2           0
+   nt_bgc_C(k)  =            2           0
+   nlt_bgc_C(k) =            2           0
+   nt_bgc_chl(k)  =            2           0
+   nlt_bgc_chl(k) =            2           0
+   nt_bgc_N(k)  =            3           0
+   nlt_bgc_N(k) =            3           0
+   nt_bgc_C(k)  =            3           0
+   nlt_bgc_C(k) =            3           0
+   nt_bgc_chl(k)  =            3           0
+   nlt_bgc_chl(k) =            3           0
+   max_DOC =            3
+   nt_bgc_DOC(k)  =            1           0
+   nlt_bgc_DOC(k) =            1           0
+   nt_bgc_DOC(k)  =            2           0
+   nlt_bgc_DOC(k) =            2           0
+   nt_bgc_DOC(k)  =            3           0
+   nlt_bgc_DOC(k) =            3           0
+   max_DON =            1
+   nt_bgc_DON(k)  =            1           0
+   nlt_bgc_DON(k) =            1           0
+   max_DIC =            1
+   nt_bgc_DIC(k)  =            1           0
+   nlt_bgc_DIC(k) =            1           0
+   max_fe =            2
+   nt_bgc_Fed(k)  =            1           0
+   nlt_bgc_Fed(k) =            1           0
+   nt_bgc_Fep(k)  =            1           0
+   nlt_bgc_Fep(k) =            1           0
+   nt_bgc_Fed(k)  =            2           0
+   nlt_bgc_Fed(k) =            2           0
+   nt_bgc_Fep(k)  =            2           0
+   nlt_bgc_Fep(k) =            2           0
+   max_aero =            6
+   nt_zaero(k)     =            1           0
+   nlt_zaero(k)    =            1           0
+   nlt_zaero_sw(k) =            1           0
+   nt_zaero(k)     =            2           0
+   nlt_zaero(k)    =            2           0
+   nlt_zaero_sw(k) =            2           0
+   nt_zaero(k)     =            3           0
+   nlt_zaero(k)    =            3           0
+   nlt_zaero_sw(k) =            3           0
+   nt_zaero(k)     =            4           0
+   nlt_zaero(k)    =            4           0
+   nlt_zaero_sw(k) =            4           0
+   nt_zaero(k)     =            5           0
+   nlt_zaero(k)    =            5           0
+   nlt_zaero_sw(k) =            5           0
+   nt_zaero(k)     =            6           0
+   nlt_zaero(k)    =            6           0
+   nlt_zaero_sw(k) =            6           0
+ 
+  (icepack_init_itd_hist)
+  hin_max(n-1) < Cat n < hin_max(n)
+   0.000000000000000E+000  < Cat            1  <   0.600000000000000
+   0.600000000000000       < Cat            2  <    1.40000000000000
+    1.40000000000000       < Cat            3  <    2.40000000000000
+    2.40000000000000       < Cat            4  <    3.60000000000000
+    3.60000000000000       < Cat            5  <    999.900000000000
+ 

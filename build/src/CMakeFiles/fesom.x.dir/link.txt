@@ -1,0 +1,1 @@
+/albedo/soft/sw/spack-sw/intel-oneapi-mpi/2021.6.0-ypwmdz5/mpi/2021.6.0/bin/mpiifort  -qmkl -g CMakeFiles/fesom.x.dir/fesom_main.F90.o -o ../bin/fesom.x  -Wl,-rpath,"\$ORIGIN/../lib64" ../lib/libfesom.so 

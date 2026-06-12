@@ -1,0 +1,1701 @@
+diff -r Icepack/configuration/driver/icedrv_calendar.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_calendar.F90
+95a96,99
+>       character (len=char_len), public :: &
+>          calendar_type      ! differentiates Gregorian from other calendars
+>                             ! default = ' '
+> 
+141a146,148
+> 
+>       calendar_type = ' '
+>       if (use_leap_years .and. days_per_year == 365) calendar_type = 'Gregorian'
+diff -r Icepack/configuration/driver/icedrv_flux.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_flux.F90
+132,134d131
+<       real (kind=dbl_kind), public :: &
+<          sst_init    ! initial sea surface temperature (C)
+< 
+190,195d186
+<       ! fixed ocean mixed layer properties (are overwritten by forcing data)
+<       real (kind=dbl_kind), public :: &
+<          sss_fixed   , & ! Sea surface salinity (PSU)
+<          qdp_fixed   , & ! Deep ocean heat flux (negative upward, W/m^2)
+<          hmix_fixed      ! Mixed layer depth (m)
+< 
+267,285d257
+<       ! General pond diagnostic variables
+<       real (kind=dbl_kind), &
+<          dimension (nx,ncat), public :: &
+<          ! Like melttn these are defined as volume per unit category area
+<          dpnd_flushn,   & ! category pond flushing rate due to ice permeability
+<          dpnd_exponn,   & ! category exponential pond drainage rate
+<          dpnd_freebdn,  & ! category pond drainage rate due to freeboard constraint
+<          dpnd_initialn, & ! category runoff rate due to rfrac (m/step)
+<          dpnd_dlidn       ! category pond loss/gain due to ice lid (m/step)
+< 
+<       real (kind=dbl_kind), dimension (nx), public :: &
+<          dpnd_flush,    & ! pond flushing rate due to ice permeability (m/step)
+<          dpnd_expon,    & ! exponential pond drainage rate (m/step)
+<          dpnd_freebd,   & ! pond drainage rate due to freeboard constraint (m/step)
+<          dpnd_initial,  & ! runoff rate due to rfrac (m/step)
+<          dpnd_dlid,     & ! pond loss/gain (+/-) to ice lid freezing/melting (m/step)
+<          dpnd_melt,     & ! pond 'drainage' due to ice melting (m / step)
+<          dpnd_ridge       ! pond drainage due to ridging (m / step)
+< 
+516,517c488,489
+<       sss    (:) = sss_fixed       ! sea surface salinity (ppt)
+<       sst    (:) = sst_init        ! sea surface temperature (C)
+---
+>       sss    (:) = 34.0_dbl_kind   ! sea surface salinity (ppt)
+>       sst    (:) = -1.8_dbl_kind   ! sea surface temperature (C)
+532,533c504,505
+<       qdp     (:) = qdp_fixed      ! deep ocean heat flux (W/m^2)
+<       hmix    (:) = hmix_fixed     ! ocean mixed layer depth
+---
+>       qdp     (:) = c0             ! deep ocean heat flux (W/m^2)
+>       hmix    (:) = c20            ! ocean mixed layer depth
+691d662
+<       Tsnice (:) = c0
+720,726d690
+<       dpnd_flush  (:) = c0
+<       dpnd_expon  (:) = c0
+<       dpnd_freebd (:) = c0
+<       dpnd_initial(:) = c0
+<       dpnd_dlid   (:) = c0
+<       dpnd_melt   (:) = c0
+<       dpnd_ridge  (:) = c0
+diff -r Icepack/configuration/driver/icedrv_forcing.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_forcing.F90
+13d12
+<       use icedrv_calendar, only: npt, use_leap_years, time0, year_init
+24,26d22
+< #ifdef USE_NETCDF
+<       use netcdf
+< #endif
+30d25
+< 
+34,35c29,30
+<       integer (kind=int_kind) :: &
+<          ntime               ! number of data points in time
+---
+>       integer (kind=int_kind), parameter :: &
+>          ntime = 8760        ! number of data points in time
+43,71c38,64
+<       real (kind=dbl_kind), allocatable :: &
+<             fsw_data(:), & ! field values at temporal data points
+<            cldf_data(:), &
+<           fsnow_data(:), &
+<            Tair_data(:), &
+<            uatm_data(:), &
+<            vatm_data(:), &
+<            wind_data(:), &
+<           strax_data(:), &
+<           stray_data(:), &
+<            rhum_data(:), &
+<              Qa_data(:), &
+<            rhoa_data(:), &
+<            potT_data(:), &
+<             flw_data(:), &
+<             qdp_data(:), &
+<             sst_data(:), &
+<             sss_data(:), &
+<            uocn_data(:), &
+<            vocn_data(:), &
+<           frain_data(:), &
+<           swvdr_data(:), &
+<           swvdf_data(:), &
+<           swidr_data(:), &
+<           swidf_data(:), &
+<            zlvl_data(:), &
+<            hmix_data(:), &
+<            open_data(:), &
+<            clos_data(:)
+---
+>       real (kind=dbl_kind), dimension(ntime) :: &
+>             fsw_data, & ! field values at temporal data points
+>            cldf_data, &
+>           fsnow_data, &
+>            Tair_data, &
+>            uatm_data, &
+>            vatm_data, &
+>            wind_data, &
+>           strax_data, &
+>           stray_data, &
+>            rhum_data, &
+>              Qa_data, &
+>            rhoa_data, &
+>            potT_data, &
+>             flw_data, &
+>             qdp_data, &
+>             sst_data, &
+>             sss_data, &
+>            uocn_data, &
+>            vocn_data, &
+>           frain_data, &
+>           swvdr_data, &
+>           swvdf_data, &
+>           swidr_data, &
+>           swidf_data, &
+>            zlvl_data, &
+>            hmix_data
+75a69,72
+>       real (kind=dbl_kind), dimension(ntime) :: &
+>            open_data, &
+>            clos_data
+> 
+80,81c77,78
+<          atm_data_type,   & ! 'default', 'clim', 'CFS', 'MDF'
+<          ocn_data_type,   & ! 'default', 'SHEBA' 'MDF'
+---
+>          atm_data_type,   & ! 'default', 'clim', 'CFS'
+>          ocn_data_type,   & ! 'default', 'SHEBA'
+100,102c97,98
+<          oceanmixed_ice        , & ! if true, use internal ocean mixed layer
+<          restore_ocn           , & ! restore sst if true
+<          precalc_forc              ! whether to precalculate forcing
+---
+>          oceanmixed_ice , & ! if true, use internal ocean mixed layer
+>          restore_ocn        ! restore sst if true
+127,152d122
+<       ! Initialize ntime and allocate data arrays
+<       if (precalc_forc) then
+<          if (trim(atm_data_type(1:3)) /= 'MDF') &
+<             call icedrv_system_abort(string=subname//&
+<             'precalc_forc should only be used with MDF atmosphere', &
+<             file=__FILE__,line=__LINE__)
+<          if (.not. ((trim(ocn_data_type(1:3)) == 'MDF') &
+<             .or. (trim(ocn_data_type(1:7)) == 'default'))) &
+<             call icedrv_system_abort(string=subname//&
+<             'precalc_forc should only be used with MDF ocean or'//&
+<             ' default ocean', file=__FILE__,line=__LINE__)
+<          ntime = npt
+<       else
+<          ntime = 8760
+<       endif
+<       allocate(fsw_data(ntime), cldf_data(ntime), fsnow_data(ntime), &
+<                Tair_data(ntime), uatm_data(ntime), vatm_data(ntime), &
+<                wind_data(ntime), strax_data(ntime), stray_data(ntime), &
+<                rhum_data(ntime), Qa_data(ntime), rhoa_data(ntime), &
+<                potT_data(ntime), flw_data(ntime), qdp_data(ntime), &
+<                sst_data(ntime), sss_data(ntime), uocn_data(ntime), &
+<                vocn_data(ntime), frain_data(ntime), swvdr_data(ntime), &
+<                swvdf_data(ntime), swidr_data(ntime), swidf_data(ntime), &
+<                zlvl_data(ntime), hmix_data(ntime), open_data(ntime), &
+<                clos_data(ntime))
+< 
+186d155
+<            hmix_data(:)= hmix (i)    ! ocean mixed layer depth (m)
+195d163
+<       if (trim(atm_data_type(1:3)) == 'MDF')   call atm_MDF
+211d178
+<       if (trim(ocn_data_type(1:3)) == 'MDF') call ocn_MDF
+263,367c230,236
+<       if (precalc_forc) then
+<          ! Fill all grid boxes with same forcing data
+<          Tair (:) = Tair_data(timestep)
+<          Qa   (:) = Qa_data(timestep)
+<          uatm (:) = uatm_data(timestep)
+<          vatm (:) = vatm_data(timestep)
+<          fsnow(:) = fsnow_data(timestep)
+<          flw  (:) = flw_data(timestep)
+<          fsw  (:) = fsw_data(timestep)
+< 
+<          ! derived (or not otherwise set)
+<          potT (:) = potT_data(timestep)
+<          wind (:) = wind_data(timestep)
+<          strax(:) = strax_data(timestep)
+<          stray(:) = stray_data(timestep)
+<          rhoa (:) = rhoa_data(timestep)
+<          frain(:) = frain_data(timestep)
+<          swvdr(:) = swvdr_data(timestep)
+<          swvdf(:) = swvdf_data(timestep)
+<          swidr(:) = swidr_data(timestep)
+<          swidf(:) = swidf_data(timestep)
+< 
+<          ! Ocean forcing
+<          sst_temp(:) = sst_data(timestep)
+<          sss     (:) = sss_data(timestep)
+<          uocn    (:) = uocn_data(timestep)
+<          vocn    (:) = vocn_data(timestep)
+<          qdp     (:) = qdp_data(timestep)
+< 
+<       else
+<          if (trim(atm_data_type) == 'CFS') then
+<             ! calculate data index corresponding to current timestep
+<             i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+<             mlast = i
+<             mnext = mlast
+<             c1intp = c1
+<             c2intp = c0
+< 
+<             ! fill all grid boxes with the same forcing data
+<             Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+<             Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+<             uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+<             vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+<             fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+<             flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+<             fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+< 
+<             ! derived (or not otherwise set)
+<             potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+<             wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+<             strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+<             stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+<             rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+<             frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+<             swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+<             swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+<             swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+<             swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+< 
+<          elseif (trim(atm_data_type) == 'clim') then
+<             midmonth = 15  ! assume data is given on 15th of every month
+<             recslot = 1                             ! latter half of month
+<             if (mday < midmonth) recslot = 2        ! first half of month
+<             if (recslot == 1) then
+<                mlast = month
+<                mnext = mod(month   ,12) + 1
+<             else ! recslot = 2
+<                mlast = mod(month+10,12) + 1
+<                mnext = month
+<             endif
+<             call interp_coeff_monthly(recslot, c1intp, c2intp)
+< 
+<             ! fill all grid boxes with the same forcing data
+<             Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+<             Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+<             uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+<             vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+<             fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+<             flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+<             fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+< 
+<             ! derived (or not otherwise set)
+<             potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+<             wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+<             strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+<             stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+<             rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+<             frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+<             swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+<             swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+<             swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+<             swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+< 
+<          elseif (trim(atm_data_type) == 'ISPOL') then
+< 
+<          offndy = 0                              ! first data record (Julian day)
+<          offset = real(offndy,dbl_kind)*secday
+<          dataloc = 1                             ! data located at middle of interval
+<          maxrec = 365
+<          recslot = 2
+<          recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+<          mlast = mod(recnum+maxrec-2,maxrec) + 1
+<          mnext = mod(recnum-1,       maxrec) + 1
+<          call interp_coeff (recnum, recslot, secday, dataloc, &
+<                               c1intp, c2intp, offset)
+---
+>       if (trim(atm_data_type) == 'CFS') then
+>          ! calculate data index corresponding to current timestep
+>          i = mod(timestep-1,ntime)+1 ! repeat forcing cycle
+>          mlast = i
+>          mnext = mlast
+>          c1intp = c1
+>          c2intp = c0
+368a238
+>          ! fill all grid boxes with the same forcing data
+374,394d243
+< 
+<             ! derived (or not otherwise set)
+<             potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+<             wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+<             strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+<             stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+<             rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+<             frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+< 
+<          sec6hr = secday/c4;                      ! seconds in 6 hours
+<          offndy = 0
+<          maxrec = 1460
+<          recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+<          recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
+<          recslot = 2
+<          mlast = mod(recnum+maxrec-2,maxrec) + 1
+<          mnext = mod(recnum-1,       maxrec) + 1
+<          call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+<                               c1intp, c2intp, offset)
+< 
+<          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+395a245
+>          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+397,414c247,257
+<             ! derived
+<             swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+<             swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+<             swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+<             swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+< 
+<          elseif (trim(atm_data_type) == 'NICE') then
+< 
+<          offndy = 0                              ! first data record (Julian day)
+<          offset = real(offndy,dbl_kind)*secday
+<          dataloc = 1                          ! data located in middle of interval
+<          maxrec = 365
+<          recslot = 2
+<          recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+<          mlast = mod(recnum+maxrec-2,maxrec) + 1
+<          mnext = mod(recnum-1,       maxrec) + 1
+<          call interp_coeff (recnum, recslot, secday, dataloc, &
+<                               c1intp, c2intp, offset)
+---
+>          ! derived (or not otherwise set)
+>          potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+>          wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+>          strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+>          stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+>          rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+>          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+>          swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+>          swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+>          swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+>          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+415a259,272
+>       elseif (trim(atm_data_type) == 'clim') then
+>          midmonth = 15  ! assume data is given on 15th of every month
+>          recslot = 1                             ! latter half of month
+>          if (mday < midmonth) recslot = 2        ! first half of month
+>          if (recslot == 1) then
+>             mlast = month
+>             mnext = mod(month   ,12) + 1
+>          else ! recslot = 2
+>             mlast = mod(month+10,12) + 1
+>             mnext = month
+>          endif
+>          call interp_coeff_monthly(recslot, c1intp, c2intp)
+> 
+>          ! fill all grid boxes with the same forcing data
+420a278,279
+>          flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+>          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+422,439c281,304
+<             ! derived (or not otherwise set)
+<             potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+<             wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+<             strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+<             stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+<             rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+<             frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+< 
+<          sec6hr = secday/c4;                      ! seconds in 6 hours
+<          maxrec = 1460
+<          dataloc = 2                              ! data located at end of interval
+<          recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+<          recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
+<          recslot = 2
+<          mlast = mod(recnum+maxrec-2,maxrec) + 1
+<          mnext = mod(recnum-1,       maxrec) + 1
+<          call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+<                               c1intp, c2intp, offset)
+---
+>          ! derived (or not otherwise set)
+>          potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+>          wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+>          strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+>          stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+>          rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+>          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+>          swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+>          swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+>          swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+>          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+> 
+>       elseif (trim(atm_data_type) == 'ISPOL') then
+> 
+>         offndy = 0                              ! first data record (Julian day)
+>         offset = real(offndy,dbl_kind)*secday
+>         dataloc = 1                             ! data located at middle of interval
+>         maxrec = 365
+>         recslot = 2
+>         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+>         mlast = mod(recnum+maxrec-2,maxrec) + 1
+>         mnext = mod(recnum-1,       maxrec) + 1
+>         call interp_coeff (recnum, recslot, secday, dataloc, &
+>                            c1intp, c2intp, offset)
+441,442c306,310
+<          fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+<          flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+---
+>         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+>         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+>         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+>         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+>         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+444,448c312,329
+<             ! derived
+<             swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+<             swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+<             swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+<             swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+---
+>          ! derived (or not otherwise set)
+>          potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+>          wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+>          strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+>          stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+>          rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+>          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+> 
+>         sec6hr = secday/c4;                      ! seconds in 6 hours
+>         offndy = 0
+>         maxrec = 1460
+>         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+>         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1 ! data begins on 16 June 2004
+>         recslot = 2
+>         mlast = mod(recnum+maxrec-2,maxrec) + 1
+>         mnext = mod(recnum-1,       maxrec) + 1
+>         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+>                            c1intp, c2intp, offset)
+450c331,387
+<          endif
+---
+>         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+>         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+> 
+>          ! derived
+>          swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+>          swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+>          swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+>          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+> 
+>       elseif (trim(atm_data_type) == 'NICE') then
+> 
+>         offndy = 0                              ! first data record (Julian day)
+>         offset = real(offndy,dbl_kind)*secday
+>         dataloc = 1                          ! data located in middle of interval
+>         maxrec = 365
+>         recslot = 2
+>         recnum = mod(int(yday)+maxrec-offndy-1,maxrec)+1
+>         mlast = mod(recnum+maxrec-2,maxrec) + 1
+>         mnext = mod(recnum-1,       maxrec) + 1
+>         call interp_coeff (recnum, recslot, secday, dataloc, &
+>                            c1intp, c2intp, offset)
+> 
+>         Tair (:) = c1intp *  Tair_data(mlast) + c2intp *  Tair_data(mnext)
+>         Qa   (:) = c1intp *    Qa_data(mlast) + c2intp *    Qa_data(mnext)
+>         uatm (:) = c1intp *  uatm_data(mlast) + c2intp *  uatm_data(mnext)
+>         vatm (:) = c1intp *  vatm_data(mlast) + c2intp *  vatm_data(mnext)
+>         fsnow(:) = c1intp * fsnow_data(mlast) + c2intp * fsnow_data(mnext)
+> 
+>          ! derived (or not otherwise set)
+>          potT (:) = c1intp *  potT_data(mlast) + c2intp *  potT_data(mnext)
+>          wind (:) = c1intp *  wind_data(mlast) + c2intp *  wind_data(mnext)
+>          strax(:) = c1intp * strax_data(mlast) + c2intp * strax_data(mnext)
+>          stray(:) = c1intp * stray_data(mlast) + c2intp * stray_data(mnext)
+>          rhoa (:) = c1intp *  rhoa_data(mlast) + c2intp *  rhoa_data(mnext)
+>          frain(:) = c1intp * frain_data(mlast) + c2intp * frain_data(mnext)
+> 
+>         sec6hr = secday/c4;                      ! seconds in 6 hours
+>         maxrec = 1460
+>         dataloc = 2                              ! data located at end of interval
+>         recnum = 4*int(yday) - 3 + int(real(sec,kind=dbl_kind)/sec6hr)
+>         recnum = mod(recnum+maxrec-4*offndy-1,maxrec)+1
+>         recslot = 2
+>         mlast = mod(recnum+maxrec-2,maxrec) + 1
+>         mnext = mod(recnum-1,       maxrec) + 1
+>         call interp_coeff (recnum, recslot, sec6hr, dataloc, &
+>                            c1intp, c2intp, offset)
+> 
+>         fsw  (:) = c1intp *   fsw_data(mlast) + c2intp *   fsw_data(mnext)
+>         flw  (:) = c1intp *   flw_data(mlast) + c2intp *   flw_data(mnext)
+> 
+>          ! derived
+>          swvdr(:) = c1intp * swvdr_data(mlast) + c2intp * swvdr_data(mnext)
+>          swvdf(:) = c1intp * swvdf_data(mlast) + c2intp * swvdf_data(mnext)
+>          swidr(:) = c1intp * swidr_data(mlast) + c2intp * swidr_data(mnext)
+>          swidf(:) = c1intp * swidf_data(mlast) + c2intp * swidf_data(mnext)
+> 
+>       endif
+507d443
+<    endif
+601,604d536
+<       ! Warn that this overwrites default and namelist value
+<       write(nu_diag,*) subname
+<       write(nu_diag,*) 'WARNING: atm_data_type = clim overwrites '//&
+<          'oceanic heat flux convergence from default or namelist'
+1045,1444d976
+<       subroutine atm_MDF
+< 
+<       integer (kind=int_kind) :: &
+<          nt,      &  ! timestep index for Icepack arrays
+<          i,       &  ! index for forcing data arrays
+<          bound,   &  ! bound for subsetting data
+<          dimlen,  &  ! length of the data arrays
+<          ncid,    &  ! NetCDF file id
+<          dimid,   &  ! NetCDF dimension id
+<          status,  &  ! NetCDF status flag
+<          varid       ! NetCDF variable id
+< 
+<       integer (kind=dbl_kind), allocatable :: &
+<          data_time(:)   ! array for time array in forcing data
+< 
+<       integer (kind=dbl_kind), dimension(ntime) :: &
+<          model_time ! array for Icepack minutely time
+< 
+<       real (kind=dbl_kind) :: &
+<          model_time0    ! start time for model in seconds since 1970
+< 
+<       real (kind=dbl_kind), allocatable :: &
+<          data(:)  ! data array from file
+< 
+<       character (char_len) :: varname
+< 
+<       character (char_len_long) :: &
+<          filename, &
+<          time_basis     ! time basis for data
+< 
+<       integer (kind=int_kind), dimension(ntime, 2) :: &
+<          data_sections  ! 2D array for indices corresponding
+<                         ! to which data values should be averaged to
+<                         ! create the model forcing values
+< 
+<       real (kind=dbl_kind), parameter :: &
+<          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+<          model_miss_val = -9999.00     ! missing value for internal use
+< 
+<       character(len=*), parameter :: subname='(atm_MDF)'
+< 
+<       filename = trim(data_dir)//'/MDF/'//trim(atm_data_file)
+< 
+<       if (atm_data_format /= 'nc') then
+<          call icedrv_system_abort(string=subname//&
+<          ' ERROR: only NetCDF input implemented for atm_MDF', &
+<          file=__FILE__,line=__LINE__)
+<       else
+< #ifdef USE_NETCDF
+<          ! Open forcing file
+<          status = nf90_open(trim(filename), nf90_nowrite, ncid)
+<          if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt open netcdf file', &
+<                            file=__FILE__,line=__LINE__)
+< 
+<          ! Create array for the time step values in seconds since 1970
+<          ! CF standard calendar is Gregorian
+<          ! May have strange behavior if dt is not an integer
+<          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
+<          do nt = 1, ntime
+<             model_time(nt) = int(model_time0 + dt * nt, kind=dbl_kind)
+<          enddo
+< 
+<          ! Read, average, and interpolate forcing data from each variable
+<          ! Moving average forcing values into model arrays
+<          call load_var_MDF("tas", Tair_data, ncid, model_time)
+<          call load_var_MDF("hus", Qa_data, ncid, model_time)
+<          call load_var_MDF("uas", uatm_data, ncid, model_time)
+<          call load_var_MDF("vas", vatm_data, ncid, model_time)
+<          call load_var_MDF("rlds", flw_data, ncid, model_time)
+<          call load_var_MDF("rsds", fsw_data, ncid, model_time)
+< 
+<          ! Precipitation data is optional
+<          ! Check whether snowfall rate is in the dataset
+<          status = nf90_inq_varid(ncid, "prsn", varid)
+<          if (status /= nf90_noerr) then
+<             write(nu_diag,*) subname
+<             write(nu_diag,*) 'WARNING: no snowfall rate in forcing.'// &
+<                ' Icepack will assume snowfall rate is zero.'
+<             fsnow_data(:) = c0
+<          else
+<             call load_var_MDF("prsn", fsnow_data, ncid, model_time)
+<          endif
+<          ! Check whether total precipitation rate is in the dataset
+<          status = nf90_inq_varid(ncid, "pr", varid)
+<          if (status /= nf90_noerr) then
+<             write(nu_diag,*) subname
+<             write(nu_diag,*) 'WARNING: no precipitation rate in '// &
+<                'forcing. Icepack will assume rainfall rate is zero.'
+<             frain_data(:) = c0
+<          else
+<             call load_var_MDF("pr", frain_data, ncid, model_time)
+<          endif
+<          ! rainfall is total precipitation minus snowfall
+<          ! subject to the constraint that rainfall is non-negative
+<          do nt = 1, ntime
+<             frain_data(nt) = max(frain_data(nt) - fsnow_data(nt), c0)
+<          enddo
+< 
+< #else
+<          call icedrv_system_abort(string=subname//&
+<          ' ERROR: atm_data_format = "nc" requires USE_NETCDF', &
+<          file=__FILE__,line=__LINE__)
+< #endif
+<       endif
+< 
+<       end subroutine atm_MDF
+< 
+< !=======================================================================
+< 
+< #ifdef USE_NETCDF
+<       subroutine MDF_average(data_var_name, model_var_arr, &
+<          data_var_len, ncid, data_sections, model_miss_val)
+< 
+<       character(len=*), intent(in) :: &
+<          data_var_name  ! Name of the variable in the MDF forcing file
+< 
+<       real (kind=dbl_kind), dimension(ntime), intent(out) :: &
+<          model_var_arr  ! array to place averaged forcing data in
+< 
+<       integer (kind=int_kind), intent(in) :: &
+<          data_var_len, &   ! Size of data array in MDF forcing file
+<          ncid              ! NetCDF file id
+< 
+<       integer (kind=int_kind), dimension(ntime, 2) :: &
+<          data_sections     ! indices for which data values to average
+< 
+<       real (kind=dbl_kind), intent(in) :: &
+<          model_miss_val ! for when there is no data in a time step
+< 
+<       ! Local variables
+<       real (kind=dbl_kind), dimension(data_var_len) :: &
+<          data_var_arr      ! array for data from forcing file
+< 
+<       real (kind=dbl_kind) :: &
+<          work, &           ! variable for averaging
+<          data_miss_val, &  ! value of missing data
+<          count             ! counter for data to average
+< 
+<       integer (kind=int_kind) :: &
+<          status, &         ! NetCDF status flag
+<          nt,     &         ! timestep index for Icepack arrays
+<          i,      &         ! index for forcing data arrays
+<          varid             ! NetCDF variable id
+< 
+<       character(len=*), parameter :: subname='(MDF_average)'
+< 
+<       ! Allocate get data and missing value from file
+<       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt get '//data_var_name//' var id', &
+<                            file=__FILE__,line=__LINE__)
+<       status = nf90_get_att(ncid, varid, "missing_value", data_miss_val)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt get '//data_var_name//' missing value', &
+<                            file=__FILE__,line=__LINE__)
+<       status = nf90_get_var(ncid, varid, data_var_arr)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt get '//data_var_name//' values', &
+<                            file=__FILE__,line=__LINE__)
+< 
+<       ! For each model time point average non-missing data values
+<       do nt = 1, ntime
+<          count = 0
+<          work = c0
+<          do i = data_sections(nt, 1), data_sections(nt, 2)
+<             if (data_var_arr(i) /= data_miss_val) then
+<                work = work + data_var_arr(i)
+<                count = count + 1
+<             endif
+<          end do
+<          if (count > 0) then
+<             model_var_arr(nt) = work / count
+<          else
+<             model_var_arr(nt) = model_miss_val
+<          endif
+<       end do
+< 
+<       end subroutine MDF_average
+< #endif
+< 
+< !=======================================================================
+< 
+<       subroutine MDF_interpolate(model_var_arr, model_miss_val)
+< 
+<       real (kind=dbl_kind), dimension(ntime), intent(inout) :: &
+<          model_var_arr  ! array to place averaged forcing data in
+< 
+<       real (kind=dbl_kind), intent(in) :: &
+<          model_miss_val ! for when there is no data in a time step
+< 
+<       integer (kind=int_kind) :: &
+<          mlast,         &  ! index of last present data
+<          nt, m,         &  ! model timestep indices
+<          count             ! counter for missing values
+< 
+<       character(len=*), parameter :: subname='(MDF_interpolate)'
+< 
+<       ! Interpolate, extrapolate for first and last values
+<       if (model_var_arr(1) == model_miss_val) then
+<          mlast = 0
+<       else
+<          mlast = 1
+<       endif
+<       do nt = 2, ntime
+<          if (model_var_arr(nt) == model_miss_val) then
+<             ! Do nothing (i.e., allow nt to increment) unless we're at end
+<             if (nt == ntime) then
+<                do m = mlast + 1, nt
+<                   model_var_arr(m) = model_var_arr(mlast)
+<                end do
+<             endif
+<          else if ((nt - mlast) == 1) then
+<             ! No missing data, increment mlast
+<             mlast = nt
+<          else
+<             ! If we're at the start extrapolate to fill
+<             if (mlast==0) then
+<                do m = mlast + 1, nt - 1
+<                   model_var_arr(m) = model_var_arr(nt)
+<                end do
+<             else
+<                ! Interpolate missing data
+<                do m = mlast + 1, nt - 1
+<                   model_var_arr(m) = model_var_arr(mlast) &
+<                      + (model_var_arr(nt) - model_var_arr(mlast)) &
+<                      * (m - mlast) / (nt - mlast)
+<                end do
+<             endif
+<             mlast = nt
+<          endif
+<       end do
+< 
+<       end subroutine MDF_interpolate
+< !=======================================================================
+< 
+<       subroutine load_var_MDF(data_var_name, model_var_arr, ncid, &
+<                                  model_time)
+< 
+<       character(len=*), intent(in) :: &
+<          data_var_name  ! Name of the variable in the MDF forcing file
+< 
+<       real (kind=dbl_kind), dimension(ntime), intent(out) :: &
+<          model_var_arr  ! array to place forcing data in
+< 
+<       integer (kind=int_kind), intent(in) :: &
+<          ncid           ! NetCDF file id
+< 
+<       integer (kind=dbl_kind), dimension(ntime), intent(in) :: &
+<          model_time     ! model time array
+< 
+<       ! Local variables
+< 
+<       integer (kind=int_kind) :: &
+<          nt,      &  ! timestep index for Icepack arrays
+<          i,       &  ! index for forcing data arrays
+<          bound,   &  ! bound for subsetting data
+<          dimlen,  &  ! length of the data arrays
+<          dimid,   &  ! NetCDF dimension id
+<          status,  &  ! NetCDF status flag
+<          nvardims,&  ! number of dimensions for variable
+<          varid       ! NetCDF variable id
+< 
+<       integer (kind=dbl_kind), allocatable :: &
+<          data_time(:)   ! array for time array in forcing data
+< 
+<       integer, dimension(1) :: &
+<          vardimids      ! dimension id for variable
+< 
+<       character (char_len) :: &
+<          calendar_type, &  ! data calendar type
+<          dimname           ! name for variables dimension
+< 
+<       character (char_len_long) :: &
+<          time_basis     ! time basis for data
+< 
+<       integer (kind=int_kind), dimension(ntime, 2) :: &
+<          data_sections  ! 2D array for indices corresponding
+<                         ! to which data values should be averaged to
+<                         ! create the model forcing values
+< 
+<       real (kind=dbl_kind), parameter :: &
+<          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+<          model_miss_val = -9999.00     ! missing value for internal use
+< 
+<       character(len=*), parameter :: subname='(load_var_MDF)'
+< 
+< #ifdef USE_NETCDF
+< 
+<       ! Get varid and missing value from file
+<       status = nf90_inq_varid(ncid, trim(data_var_name), varid)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt get '//data_var_name//' var id', &
+<                            file=__FILE__,line=__LINE__)
+<       ! Get information about the dimension for this variable
+<       status = nf90_inquire_variable(ncid, varid, ndims=nvardims)
+<       if (nvardims /= 1) call icedrv_system_abort(&
+<             string=subname//data_var_name//' has more than 1 dimension', &
+<                            file=__FILE__,line=__LINE__)
+<       status = nf90_inquire_variable(ncid, varid, dimids=vardimids)
+<       status = nf90_inquire_dimension(ncid, vardimids(1), &
+<             name=dimname, len=dimlen)
+<       ! Check that dimname matches pattern
+<       if (dimname(1:4) /= 'time') call icedrv_system_abort(&
+<             string=subname//data_var_name//' dimension name is not timeXXXX', &
+<                            file=__FILE__,line=__LINE__)
+<       if (verify(trim(dimname(5:)), "0123456789") /= 0) call icedrv_system_abort(&
+<             string=subname//data_var_name//' dimension name is not timeXXXX', &
+<                            file=__FILE__,line=__LINE__)
+<       allocate (data_time(dimlen))
+<       ! Check that cadence variable exists and calendars match
+<       status = nf90_inq_varid(ncid, trim(dimname), varid)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<          string=subname//'Couldnt get '//trim(dimname)//' var id', &
+<                         file=__FILE__,line=__LINE__)
+<       status = nf90_get_att(ncid, varid, "calendar", calendar_type)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<          string=subname//'Couldnt get calendar attribute', &
+<                         file=__FILE__,line=__LINE__)
+<       ! In future this check could be replaced with calendar matching
+<       if (calendar_type /= "standard" .or. .not. use_leap_years) then
+<          call icedrv_system_abort(&
+<          string=subname//'Forcing calendar not standard or not using leap years',&
+<          file=__FILE__,line=__LINE__)
+<       endif
+<       ! Get the time array
+<       !! Note, in the file the value is actually unsigned, need to make sure this
+<       ! doesn't cause issues since Fortran 90 doesn't support unsigned ints.
+<       status = nf90_get_var(ncid, varid, data_time)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<          string=subname//'Couldnt read '//trim(dimname)//' values', &
+<                         file=__FILE__,line=__LINE__)
+<       ! Convert the data time from minutes into seconds for compatability w/ icepack
+<       data_time = data_time * 60
+< 
+<       ! Check that the time basis in forcing file is correct
+<       status = nf90_get_att(ncid, varid, "units", time_basis)
+<       if (status /= nf90_noerr) call icedrv_system_abort(&
+<          string=subname//'Couldnt get '//trim(dimname)//' units', &
+<                         file=__FILE__,line=__LINE__)
+<       if (time_basis /= "minutes since 1970-01-01 00:00:00") then
+<          call icedrv_system_abort(&
+<          string=subname//'Time basis is not minutes since 1970',&
+<          file=__FILE__,line=__LINE__)
+<       endif
+< 
+<       ! Check that we are not extrapolating forcing outside of time bounds
+<       if (model_time(1) < data_time(1)) call icedrv_system_abort(&
+<       string=subname//'Simulation starts before forcing',&
+<       file=__FILE__,line=__LINE__)
+<       if (model_time(ntime) > data_time(dimlen)) call icedrv_system_abort(&
+<       string=subname//'Simulation ends after forcing',&
+<       file=__FILE__,line=__LINE__)
+< 
+<       ! data_sections is a 2D array where the first dimension
+<       ! is the same length as model_time. The 1D array at each index
+<       ! contains the start and stop indices of the data to be averaged
+<       ! into each model timestep
+<       ! Get the first start index
+<       bound = model_time(1) - (model_time(2) - model_time(1))/2
+<       i = 1
+<       do while (data_time(i) < bound)
+<          i = i + 1
+<       end do
+<       data_sections(1, 1) = i
+<       do nt = 1, ntime - 1
+<          ! Bound is halfway between this time step and the next
+<          bound = (model_time(nt + 1) + model_time(nt))/2
+<          do while (data_time(i) < bound)
+<             i = i + 1
+<          end do ! i - 1 is now the last element in timestep nt
+<          data_sections(nt, 2) = i - 1
+<          data_sections(nt + 1, 1) = i
+<       end do
+<       ! Get the last index
+<       bound = model_time(ntime) + (model_time(ntime) - model_time(ntime - 1))/2
+<       i = dimlen
+<       do while (data_time(i) > bound)
+<          i = i - 1
+<       end do
+<       data_sections(ntime, 2) = i
+< 
+<       model_var_arr(:) = model_miss_val
+< 
+<       ! Moving average forcing values into model arrays
+<       call MDF_average(data_var_name, model_var_arr, dimlen, ncid, &
+<          data_sections, model_miss_val)
+<       ! Linearly interpolate missing values
+<       call MDF_interpolate(model_var_arr, model_miss_val)
+< 
+< #else
+<       call icedrv_system_abort(string=subname//&
+<       ' load_var_MDF requires USE_NETCDF', &
+<       file=__FILE__,line=__LINE__)
+< #endif
+< 
+<       end subroutine load_var_MDF
+< 
+< !=======================================================================
+< 
+1541,1634c1073
+<     end subroutine ocn_ISPOL
+< 
+< !=======================================================================
+< 
+<       subroutine ocn_MDF
+< 
+<       integer (kind=int_kind) :: &
+<          nt,      &  ! timestep index for Icepack arrays
+<          i,       &  ! index for forcing data arrays
+<          bound,   &  ! bound for subsetting data
+<          dimlen,  &  ! length of the data arrays
+<          ncid,    &  ! NetCDF file id
+<          dimid,   &  ! NetCDF dimension id
+<          status,  &  ! NetCDF status flag
+<          varid       ! NetCDF variable id
+< 
+<       integer (kind=dbl_kind), allocatable :: &
+<          data_time(:)   ! array for time array in forcing data
+< 
+<       integer (kind=dbl_kind), dimension(ntime) :: &
+<          model_time ! array for Icepack minutely time
+< 
+<       real (kind=dbl_kind) :: &
+<          model_time0    ! start time for model in seconds since 1970
+< 
+<       real (kind=dbl_kind), allocatable :: &
+<          data(:)  ! data array from file
+< 
+<       character (char_len) :: varname
+< 
+<       character (char_len_long) :: &
+<          filename, &
+<          time_basis     ! time basis for data
+< 
+<       integer (kind=int_kind), dimension(ntime, 2) :: &
+<          data_sections  ! 2D array for indices corresponding
+<                         ! to which data values should be averaged to
+<                         ! create the model forcing values
+< 
+<       real (kind=dbl_kind), parameter :: &
+<          Gregorian_year = 365.2425, &  ! days in Gregorian year per cf standard
+<          model_miss_val = -9999.00, &  ! missing value for internal use
+<          leg4_end_time  = 1596034800, &! end of leg 4 in seconds since 1970
+<          leg5_start_time= 1598451600   ! start of leg 5 in seconds since 1970
+< 
+<       character(len=*), parameter :: subname='(ocn_MDF)'
+< 
+<       filename = trim(data_dir)//'/MDF/'//trim(ocn_data_file)
+< 
+<       if (ocn_data_format /= 'nc') then
+<          call icedrv_system_abort(string=subname//&
+<          ' ERROR: only NetCDF input implemented for ocn_MDF', &
+<          file=__FILE__,line=__LINE__)
+<       else
+< #ifdef USE_NETCDF
+<          ! Open forcing file
+<          status = nf90_open(trim(filename), nf90_nowrite, ncid)
+<          if (status /= nf90_noerr) call icedrv_system_abort(&
+<             string=subname//'Couldnt open netcdf file', &
+<                            file=__FILE__,line=__LINE__)
+< 
+<          ! Create array for the time step values in seconds since 1970
+<          ! CF standard calendar is Gregorian
+<          ! May have strange behavior if dt is not an integer
+<          model_time0 = (year_init - 1970) * Gregorian_year * 24 * 3600 + time0
+<          do nt = 1, ntime
+<             model_time(nt) = int(model_time0 + dt * nt, kind=dbl_kind)
+<          enddo
+< 
+<          ! Warn if simulation includes leg 4-5 transition
+<          if ((model_time(1) < leg5_start_time) .and. &
+<              (model_time(ntime) > leg4_end_time) .and. &
+<              (index(ocn_data_file, 'MOSAiC') > 0)) then
+<             write(nu_diag,*) subname
+<             write(nu_diag,*) 'WARNING: Forcing may be from MOSAiC '// &
+<                'and time includes MOSAIC leg 4-5 repositioning. ' // &
+<                'If so, forcing interpolation is not valid.'
+<          endif
+< 
+<          ! Read, average, and interpolate forcing data from each variable
+<          ! Moving average forcing values into model arrays
+<          call load_var_MDF("so", sss_data, ncid, model_time)
+<          call load_var_MDF("mlotst", hmix_data, ncid, model_time)
+<          call load_var_MDF("hfsot", qdp_data, ncid, model_time)
+<          call load_var_MDF("tos", sst_data, ncid, model_time)
+< 
+< #else
+<          call icedrv_system_abort(string=subname//&
+<          ' ERROR: ocn_data_format = "nc" requires USE_NETCDF', &
+<          file=__FILE__,line=__LINE__)
+< #endif
+<       endif
+< 
+<       end subroutine ocn_MDF
+---
+>      end subroutine ocn_ISPOL
+diff -r Icepack/configuration/driver/icedrv_history.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_history.F90
+16d15
+<       use icepack_intfc, only: icepack_query_tracer_indices
+53,56c52
+<       use icedrv_flux, only: meltt, meltb, meltl, melts, snoice
+<       use icedrv_flux, only: dpnd_flushn, dpnd_exponn, dpnd_freebdn, dpnd_initialn, dpnd_dlidn
+<       use icedrv_flux, only: dpnd_flush, dpnd_expon, dpnd_freebd, dpnd_initial, dpnd_dlid
+<       use icedrv_flux, only: dpnd_melt, dpnd_ridge
+---
+>       use icedrv_flux, only: meltt, meltb, meltl, snoice
+76,78c72
+<          iflag, &                        ! history file attributes
+<          numvars, &                      ! temporary for writing fields
+<          nt_apnd, nt_hpnd, nt_ipnd       ! pond tracer indices
+---
+>          iflag                           ! history file attributes
+88c82
+<       integer (kind=dbl_kind), parameter :: num_2d = 33
+---
+>       integer (kind=dbl_kind), parameter :: num_2d = 32
+100,108c94
+<             'sss             ', 'Tf              ', 'fhocn           ', &
+<             'melts           ' /)
+< 
+<       integer (kind=dbl_kind), parameter :: num_2d_pond = 10
+<       character(len=16), parameter :: fld_2d_pond(num_2d_pond) = &
+<          (/ 'apnd            ', 'hpnd            ', 'ipnd            ', &
+<             'dpnd_flush      ', 'dpnd_expon      ', 'dpnd_freebd     ', &
+<             'dpnd_initial    ', 'dpnd_dlid       ', 'dpnd_melt       ', &
+<             'dpnd_ridge      '  /)
+---
+>             'sss             ', 'Tf              ', 'fhocn           '    /)
+115,117c101
+<          tr_fsd, &                        ! flag for tracing fsd
+<          tr_pnd, &                        ! flag for tracing ponds
+<          tr_pnd_topo                      ! flag for tracing topo ponds
+---
+>          tr_fsd                          ! flag for tracing fsd
+124,129d107
+<       integer (kind=dbl_kind), parameter :: num_3d_pond = 8
+<       character(len=16), parameter :: fld_3d_pond(num_3d_pond) = &
+<          (/ 'apndn           ', 'hpndn           ', 'ipndn           ', &
+<             'dpnd_flushn     ', 'dpnd_exponn     ', 'dpnd_freebdn    ', &
+<             'dpnd_initialn   ', 'dpnd_dlidn      ' /)
+< 
+144,145c122
+<       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd, tr_pond_out=tr_pnd, &
+<          tr_pond_topo_out=tr_pnd_topo)
+---
+>       call icepack_query_tracer_flags(tr_fsd_out=tr_fsd)
+202,205c179,180
+<             status = nf90_put_att(ncid,varid,'calendar','proleptic_gregorian')
+<             if (status /= nf90_noerr) then
+<                call icedrv_system_abort(string=subname//' ERROR: put_att calendar proleptic_gregorian')
+<             endif
+---
+>             status = nf90_put_att(ncid,varid,'calendar','Gregorian')
+>             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_att calendar gregorian')
+224,234d198
+<          if (tr_pnd) then
+<             numvars = num_2d_pond
+<             ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+<             ! this is a temporary implementation, hardcode to write the first 3 fields only
+<             if (tr_pnd_topo) numvars=3
+<             do n = 1,numvars
+<                status = nf90_def_var(ncid,trim(fld_2d_pond(n)),NF90_DOUBLE,dimid2,varid)
+<                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_2d_pond(n)))
+<             enddo
+<          endif ! tr_pnd
+< 
+246,256d209
+<          if (tr_pnd) then
+<             numvars = num_3d_pond
+<             ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+<             ! this is a temporary implementation, hardcode to write the first 3 fields only
+<             if (tr_pnd_topo) numvars=3
+<             do n = 1,numvars
+<                status = nf90_def_var(ncid,trim(fld_3d_pond(n)),NF90_DOUBLE,dimid3,varid)
+<                if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR in def_var '//trim(fld_3d_pond(n)))
+<             enddo
+<          endif ! tr_pnd
+< 
+383d335
+<          if (trim(fld_2d(n)) == 'melts')    value2(1:count2(1),1) = melts(1:count2(1))
+400,437d351
+<      ! 2d pond fields
+<       if (tr_pnd) then
+<          call icepack_query_tracer_indices( &
+<          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd)
+< 
+<          start2(1) = 1
+<          count2(1) = nx
+<          start2(2) = timcnt
+<          count2(2) = 1
+< 
+<          numvars = num_2d_pond
+<          ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+<          ! this is a temporary implementation, hardcode to write the first 3 fields only
+<          if (tr_pnd_topo) numvars=3
+<          do n = 1,numvars
+<             allocate(value2(count2(1),1))
+< 
+<             value2 = -9999._dbl_kind
+<             if (trim(fld_2d_pond(n)) == 'apnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_apnd)
+<             if (trim(fld_2d_pond(n)) == 'hpnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_hpnd)
+<             if (trim(fld_2d_pond(n)) == 'ipnd') value2(1:count2(1),1) = trcr(1:count2(1),nt_ipnd)
+<             if (trim(fld_2d_pond(n)) == 'dpnd_flush'  ) value2(1:count2(1),1) = dpnd_flush  (1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_expon'  ) value2(1:count2(1),1) = dpnd_expon  (1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_freebd' ) value2(1:count2(1),1) = dpnd_freebd (1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_initial') value2(1:count2(1),1) = dpnd_initial(1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_dlid'   ) value2(1:count2(1),1) = dpnd_dlid   (1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_melt'   ) value2(1:count2(1),1) = dpnd_melt   (1:count2(1))
+<             if (trim(fld_2d_pond(n)) == 'dpnd_ridge'  ) value2(1:count2(1),1) = dpnd_ridge  (1:count2(1))
+< 
+<             status = nf90_inq_varid(ncid,trim(fld_2d_pond(n)),varid)
+<             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_2d_pond(n)))
+<             status = nf90_put_var(ncid,varid,value2,start=start2,count=count2)
+<             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//trim(fld_2d_pond(n)))
+< 
+<             deallocate(value2)
+<          enddo
+<       endif !tr_pnd
+< 
+462,499d375
+< 
+<       ! 3d pond fields
+<       if (tr_pnd) then
+<          call icepack_query_tracer_indices( &
+<          nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, nt_ipnd_out=nt_ipnd)
+< 
+<          start3(1) = 1
+<          count3(1) = nx
+<          start3(2) = 1
+<          count3(2) = ncat
+<          start3(3) = timcnt
+<          count3(3) = 1
+< 
+<          numvars = num_3d_pond
+<          ! tcraig, July 2025, do not write most of the pond fields for topo ponds, they are not validated yet
+<          ! this is a temporary implementation, hardcode to write the first 3 fields only
+<          if (tr_pnd_topo) numvars=3
+<          do n = 1,numvars
+<             allocate(value3(count3(1),count3(2),1))
+< 
+<             value3 = -9999._dbl_kind
+<             if (trim(fld_3d_pond(n)) == 'apndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_apnd,1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'hpndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_hpnd,1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'ipndn') value3(1:count3(1),1:count3(2),1) = trcrn(1:count3(1),nt_ipnd,1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'dpnd_flushn'  ) value3(1:count3(1),1:count3(2),1) = dpnd_flushn  (1:count3(1),1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'dpnd_exponn'  ) value3(1:count3(1),1:count3(2),1) = dpnd_exponn  (1:count3(1),1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'dpnd_freebdn' ) value3(1:count3(1),1:count3(2),1) = dpnd_freebdn (1:count3(1),1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'dpnd_initialn') value3(1:count3(1),1:count3(2),1) = dpnd_initialn(1:count3(1),1:count3(2))
+<             if (trim(fld_3d_pond(n)) == 'dpnd_dlidn'   ) value3(1:count3(1),1:count3(2),1) = dpnd_dlidn   (1:count3(1),1:count3(2))
+< 
+<             status = nf90_inq_varid(ncid,trim(fld_3d_pond(n)),varid)
+<             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: inq_var '//trim(fld_3d_pond(n)))
+<             status = nf90_put_var(ncid,varid,value3,start=start3,count=count3)
+<             if (status /= nf90_noerr) call icedrv_system_abort(string=subname//' ERROR: put_var '//trim(fld_3d_pond(n)))
+< 
+<             deallocate(value3)
+<          enddo
+<       endif !tr_pnd
+diff -r Icepack/configuration/driver/icedrv_init_column.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_init_column.F90
+613c613
+<           skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
+---
+>           solve_zsal, skl_bgc, z_tracers, scale_bgc, solve_zbgc, dEdd_algae, &
+616,618d615
+<       logical (kind=log_kind) :: &
+<           solve_zsal = .false.   ! deprecated with zsalinity
+< 
+623,625d619
+<           grid_oS, l_skS    ! deprecated with zsalinity
+< 
+<       real (kind=dbl_kind) :: &
+627c621,622
+<           frazil_scav, phi_snow, &
+---
+>           frazil_scav, grid_oS, l_skS, &
+>           phi_snow, &
+835c830
+<            phi_snow_out=phi_snow, &
+---
+>            grid_oS_out=grid_oS, l_skS_out=l_skS, phi_snow_out=phi_snow, &
+843c838
+<            t_sk_ox_out=t_sk_ox, modal_aero_out=modal_aero)
+---
+>            t_sk_ox_out=t_sk_ox, modal_aero_out=modal_aero, solve_zsal_out = solve_zsal)
+1186c1181
+<            phi_snow_in=phi_snow, &
+---
+>            grid_oS_in=grid_oS, l_skS_in=l_skS, phi_snow_in=phi_snow, &
+1194c1189
+<            t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero)
+---
+>            t_sk_ox_in=t_sk_ox, modal_aero_in=modal_aero, solve_zsal_in = solve_zsal)
+diff -r Icepack/configuration/driver/icedrv_init.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_init.F90
+13d12
+<       use icedrv_flux, only: sst_init
+47,52d45
+<       real (kind=dbl_kind), public :: &
+<          hi_init_slab,   & ! initial ice thickness for slab cell (nx=2)
+<          hsno_init_slab, & ! initial snow thickness for slab cell (nx=2)
+<          hbar_init_itd,  & ! hbar for ice thickness for itd cell (nx=3)
+<          hsno_init_itd     ! initial snow thickness for itd cell (nx=3)
+< 
+76d68
+<       use icedrv_flux, only: sss_fixed, qdp_fixed, hmix_fixed
+85d76
+<       use icedrv_forcing, only: precalc_forc
+102d92
+<          apnd_sl, tscale_pnd_drain, itd_area_min, itd_mass_min, &
+106c96
+<          windmin, drhosdwind, snwlvlfac, snw_growth_wet, drsnw_min, snwliq_max
+---
+>          windmin, drhosdwind, snwlvlfac
+113,114c103
+<          frzpnd, atmbndy, wave_spec_type, wave_height_type,       &
+<          snwredist, snw_aging_table
+---
+>          frzpnd, atmbndy, wave_spec_type, snwredist, snw_aging_table
+126c115
+<       logical (kind=log_kind) :: conserv_check, semi_implicit_Tsfc, vapor_flux_correction
+---
+>       logical (kind=log_kind) :: conserv_check
+131c120
+<       logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl, wave_spec
+---
+>       logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, wave_spec
+137c126
+<       real (kind=real_kind) :: rplvl, rptopo, rpsealvl
+---
+>       real (kind=real_kind) :: rplvl, rptopo
+152,154c141
+<         conserv_check,  history_format,                                 &
+<         hi_init_slab,   hsno_init_slab, hbar_init_itd,   hsno_init_itd, &
+<         sst_init,       itd_area_min,   itd_mass_min
+---
+>         conserv_check,  history_format
+163,164c150
+<         floediam,       hfrazilmin,      Tliquidus_max,    hi_min,      &
+<         tscale_pnd_drain
+---
+>         floediam,       hfrazilmin,      Tliquidus_max,    hi_min
+180,181c166
+<         hp1,            apnd_sl
+< 
+---
+>         hp1
+185,186c170
+<         windmin,        drhosdwind,     use_smliq_pnd, snw_aging_table, &
+<         snw_growth_wet, drsnw_min,      snwliq_max
+---
+>         windmin,        drhosdwind,     use_smliq_pnd, snw_aging_table
+194,196c178,179
+<         tfrz_option,     saltflux_option, ice_ref_salinity,&
+<         cpl_frazil,      default_season,                   &
+<         wave_spec_type,  wave_height_type,                 &
+---
+>         tfrz_option,     saltflux_option, ice_ref_salinity, &
+>         default_season,  wave_spec_type,  cpl_frazil,      &
+203,206c186
+<         data_dir,        trestore,        restore_ocn,     &
+<         sss_fixed,       qdp_fixed,       hmix_fixed,      &
+<         precalc_forc,    semi_implicit_Tsfc,               &
+<         vapor_flux_correction
+---
+>         data_dir,        trestore,        restore_ocn
+214d193
+<         tr_pond_sealvl, &
+240d218
+<            apnd_sl_out=apnd_sl, tscale_pnd_drain_out=tscale_pnd_drain, &
+242,243d219
+<            semi_implicit_Tsfc_out=semi_implicit_Tsfc, &
+<            vapor_flux_correction_out=vapor_flux_correction, &
+257d232
+<            wave_height_type_out=wave_height_type, &
+263,265c238
+<            snw_aging_table_out=snw_aging_table, snw_growth_wet_out=snw_growth_wet, &
+<            drsnw_min_out=drsnw_min, snwliq_max_out=snwliq_max, &
+<            itd_area_min_out=itd_area_min, itd_mass_min_out=itd_mass_min)
+---
+>            snw_aging_table_out=snw_aging_table)
+294,298d266
+<       hi_init_slab   = c2            ! initial ice thickness for slab cell (nx=2)
+<       hsno_init_slab = c0            ! initial snow thickness for slab cell (nx=2)
+<       hbar_init_itd  = c3            ! hbar for ice thickness for itd cell (nx=3)
+<       hsno_init_itd  = 0.25_dbl_kind ! initial snow thickness for itd cell (nx=3)
+<       sst_init       = -1.8_dbl_kind ! initial mixed layer temperature (all cells)
+312d279
+<       wave_height_type= 'none'    ! type of wave height forcing
+326d292
+<       precalc_forc    = .false.   ! whether to precalculate forcing
+334d299
+<       tr_pond_sealvl = .false. ! sealvl melt ponds
+519d483
+<       rpsealvl = c0
+522d485
+<       if (tr_pond_sealvl) rpsealvl = c1
+525c488
+<       if (rplvl + rptopo + rpsealvl > puny) tr_pond = .true.
+---
+>       if (rplvl + rptopo > puny) tr_pond = .true.
+527c490
+<       if (rplvl + rptopo + rpsealvl > c1 + puny) then
+---
+>       if (rplvl + rptopo > c1 + puny) then
+686,700c649,652
+<       if (tr_fsd) then
+<          if (trim(wave_spec_type) /= 'none') then
+<             if (trim(wave_height_type) /= 'none') wave_spec = .true.
+<             if (trim(wave_height_type) /= 'internal') then
+<                write (nu_diag,*) 'WARNING: set wave_height_type=internal or coupled'
+<                call icedrv_system_abort(file=__FILE__,line=__LINE__)
+<             endif
+<          endif
+<          if (.not.(wave_spec)) then
+<             write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended'
+<             if (trim(wave_height_type) /= 'none') then
+<                write (nu_diag,*) 'WARNING: Wave_spec=F, wave_height_type/=none, wave_sig_ht = 0'
+<             endif
+<          endif
+<       endif
+---
+>       if (tr_fsd .and. (trim(wave_spec_type) /= 'none')) wave_spec = .true.
+>       if (tr_fsd .and. (trim(wave_spec_type) == 'none')) then
+>          write (nu_diag,*) 'WARNING: tr_fsd=T but wave_spec=F - not recommended'
+>       end if
+724,728d675
+<          write(nu_diag,1005) ' hi_init_slab              = ', hi_init_slab
+<          write(nu_diag,1005) ' hsno_init_slab            = ', hsno_init_slab
+<          write(nu_diag,1005) ' hbar_init_itd             = ', hbar_init_itd
+<          write(nu_diag,1005) ' hsno_init_itd             = ', hsno_init_itd
+<          write(nu_diag,1005) ' sst_init                  = ', sst_init
+730,731d676
+<          write(nu_diag,1000) ' itd_area_min              = ', itd_area_min
+<          write(nu_diag,1000) ' itd_mass_min              = ', itd_mass_min
+778c723
+<          if (tr_pond_lvl .or. tr_pond_sealvl) then
+---
+>          if (tr_pond_lvl) then
+785,786d729
+<          if (tr_pond_sealvl) &
+<          write(nu_diag,1000) ' apnd_sl                   = ', apnd_sl
+801,803d743
+<          write(nu_diag,1000) ' snw_growth_wet            = ', snw_growth_wet
+<          write(nu_diag,1000) ' drsnw_min                 = ', drsnw_min
+<          write(nu_diag,1000) ' snwliq_max                = ', snwliq_max
+818d757
+<          write(nu_diag,1005) ' tscale_pnd_drain          = ', tscale_pnd_drain
+829,830d767
+<          write(nu_diag,1010) ' semi_implicit_Tsfc        = ', semi_implicit_Tsfc
+<          write(nu_diag,1010) ' vapor_flux_correction     = ', vapor_flux_correction
+844d780
+<          write(nu_diag,1010) ' precalc_forc              = ', precalc_forc
+876d811
+<          write(nu_diag,1010) ' tr_pond_sealvl            = ', tr_pond_sealvl
+922c857
+<              if (tr_pond_lvl .or. tr_pond_topo .or. tr_pond_sealvl) then
+---
+>              if (tr_pond_lvl) then
+924c859,863
+<                  nt_ipnd = ntrcr      ! on ponds (if frzpnd='hlid')
+---
+>                  nt_ipnd = ntrcr      ! on level-ice ponds (if frzpnd='hlid')
+>              endif
+>              if (tr_pond_topo) then
+>                  ntrcr = ntrcr + 1    !
+>                  nt_ipnd = ntrcr      ! refrozen pond ice lid thickness
+1018,1022d956
+<       if (semi_implicit_Tsfc .and. tr_pond_topo) then
+<          write(nu_diag,*)'ERROR: semi_implicit_Tsfc and tr_pond_topo not supported together'
+<          call icedrv_system_abort(file=__FILE__,line=__LINE__)
+<       endif
+< 
+1043d976
+<            apnd_sl_in=apnd_sl, tscale_pnd_drain_in=tscale_pnd_drain, &
+1046,1047d978
+<            semi_implicit_Tsfc_in=semi_implicit_Tsfc, &
+<            vapor_flux_correction_in=vapor_flux_correction, &
+1059,1061c990
+<            wave_spec_type_in=wave_spec_type, &
+<            wave_height_type_in=wave_height_type, &
+<            wave_spec_in=wave_spec, &
+---
+>            wave_spec_type_in=wave_spec_type, wave_spec_in=wave_spec, &
+1067,1070c996
+<            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac, &
+<            snw_growth_wet_in=snw_growth_wet, drsnw_min_in=drsnw_min, &
+<            snwliq_max_in=snwliq_max, itd_area_min_in=itd_area_min, &
+<            itd_mass_min_in=itd_mass_min)
+---
+>            windmin_in=windmin, drhosdwind_in=drhosdwind, snwlvlfac_in=snwlvlfac)
+1079,1080c1005
+<            tr_pond_topo_in=tr_pond_topo, &
+<            tr_pond_sealvl_in=tr_pond_sealvl, tr_fsd_in=tr_fsd)
+---
+>            tr_pond_topo_in=tr_pond_topo, tr_fsd_in=tr_fsd)
+1169c1094
+<       logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_pond_sealvl, tr_snow
+---
+>       logical (kind=log_kind) :: tr_pond_lvl, tr_pond_topo, tr_snow
+1186,1187c1111
+<               tr_pond_topo_out=tr_pond_topo, &
+<               tr_pond_sealvl_out=tr_pond_sealvl, tr_fsd_out=tr_fsd)
+---
+>               tr_pond_topo_out=tr_pond_topo, tr_fsd_out=tr_fsd)
+1238c1162
+<       if (tr_pond_topo .or. tr_pond_sealvl) then
+---
+>       if (tr_pond_topo) then
+1302c1226
+<       if (tr_pond_topo .or. tr_pond_sealvl) then
+---
+>       if (tr_pond_topo) then
+1420a1345,1347
+>       real (kind=dbl_kind), parameter :: &
+>          hsno_init = 0.25_dbl_kind   ! initial snow thickness (m)
+> 
+1484,1486d1410
+<       if (i <= nx) then ! need to set ocean parameters
+<          sst(i) = sst_init
+<       endif
+1490c1414
+<       i = 2  ! 100% ice concentration slab, thickness and snow from namelist
+---
+>       i = 2  ! 2-m slab, no snow
+1492,1503c1416,1423
+<          sst(i) = sst_init ! initial ocean temperature
+<          do n = 1, ncat
+<             if (hi_init_slab <= hin_max(n)) then
+<                ainit(n) = c1
+<                hinit(n) = hi_init_slab
+<                exit
+<             endif
+<          enddo
+<          if (hi_init_slab > hin_max(ncat)) then
+<             ainit(ncat) = c1
+<             hinit(ncat) = hi_init_slab
+<          endif
+---
+>       if (3 <= ncat) then
+>          n = 3
+>          ainit(n) = c1  ! assumes we are using the default ITD boundaries
+>          hinit(n) = c2
+>       else
+>          ainit(ncat) = c1
+>          hinit(ncat) = c2
+>       endif
+1508c1428
+<          vsnon(i,n) = hsno_init_slab * ainit(n)
+---
+>          vsnon(i,n) = c0
+1552d1471
+<       sst(i) = sst_init
+1554c1473
+<       hbar = hbar_init_itd  ! initial ice thickness with greatest area
+---
+>       hbar = c3  ! initial ice thickness with greatest area
+1578c1497
+<          vsnon(i,n) = min(aicen(i,n)*hsno_init_itd,p2*vicen(i,n))
+---
+>          vsnon(i,n) = min(aicen(i,n)*hsno_init,p2*vicen(i,n))
+diff -r Icepack/configuration/driver/icedrv_InitMod.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_InitMod.F90
+45c45
+<       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec, precalc_forc
+---
+>       use icedrv_forcing, only: init_forcing, get_forcing, get_wave_spec
+59d58
+<          tr_pond_sealvl, & ! from icepack
+114,119d112
+<       call icepack_query_tracer_flags(tr_pond_sealvl_out=tr_pond_sealvl)
+<       call icepack_warnings_flush(nu_diag)
+<       if (icepack_warnings_aborted(subname)) then
+<          call icedrv_system_abort(file=__FILE__,line=__LINE__)
+<       endif
+< 
+147,151c140
+<       if (precalc_forc) then
+<          call get_forcing(istep) ! precalculated arrays are indexed by istep
+<       else
+<          call get_forcing(istep1)       ! get forcing from data arrays
+<       endif
+---
+>       call get_forcing(istep1)       ! get forcing from data arrays
+diff -r Icepack/configuration/driver/icedrv_MAIN.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_MAIN.F90
+2c2
+< ! Copyright 1998-2026, Triad National Security, LLC
+---
+> ! Copyright (c) 2024, Triad National Security, LLC
+5,14c5,14
+< ! This program was produced under U.S. Government contract 89233218CNA000001
+< ! for Los Alamos National Laboratory (LANL), which is operated by Triad
+< ! National Security, LLC for the U.S. Department of Energy/National Nuclear
+< ! Security Administration. All rights in the program are reserved by Triad
+< ! National Security, LLC, and the U.S. Department of Energy/National Nuclear
+< ! Security Administration. The Government is granted for itself and others
+< ! acting on its behalf a nonexclusive, paid-up, irrevocable worldwide
+< ! license in this material to reproduce, prepare. derivative works,
+< ! distribute copies to the public, perform publicly and display publicly,
+< ! and to permit others to do so.
+---
+> ! Copyright 2024. Triad National Security, LLC. This software was
+> ! produced under U.S. Government contract DE-AC52-06NA25396 for Los
+> ! Alamos National Laboratory (LANL), which is operated by Triad
+> ! National Security, LLC for the U.S. Department of Energy. The U.S.
+> ! Government has rights to use, reproduce, and distribute this software.
+> ! NEITHER THE GOVERNMENT NOR TRIAD NATIONAL SECURITY, LLC MAKES ANY
+> ! WARRANTY, EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF
+> ! THIS SOFTWARE. If software is modified to produce derivative works,
+> ! such modified software should be clearly marked, so as not to confuse
+> ! it with the version available from LANL.
+diff -r Icepack/configuration/driver/icedrv_restart.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_restart.F90
+92c92
+<          tr_pond_topo, tr_pond_lvl, tr_pond_sealvl, tr_snow, tr_fsd
+---
+>          tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+120,122c120
+<           tr_pond_lvl_out=tr_pond_lvl, &
+<           tr_pond_sealvl_out=tr_pond_sealvl, &
+<           tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+---
+>           tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+224d221
+<       if (tr_pond_sealvl) call write_restart_pond_sealvl(dims) ! same restart fields as lvl
+283c280
+<          tr_pond_topo, tr_pond_lvl, tr_pond_sealvl, tr_snow, tr_fsd
+---
+>          tr_pond_topo, tr_pond_lvl, tr_snow, tr_fsd
+300,302c297
+<            tr_pond_lvl_out=tr_pond_lvl, &
+<            tr_pond_sealvl_out=tr_pond_sealvl, &
+<            tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+---
+>            tr_pond_lvl_out=tr_pond_lvl,tr_snow_out=tr_snow,tr_fsd_out=tr_fsd)
+403d397
+<       if (tr_pond_sealvl) call read_restart_pond_sealvl() ! sealvl ponds same as lvl
+1002,1063d995
+< 
+< !=======================================================================
+< 
+< ! Dumps all values needed for restarting
+< !
+<       subroutine write_restart_pond_sealvl(dims)
+< 
+<       use icedrv_arrays_column, only: dhsn, ffracn
+<       use icedrv_flux, only: fsnow
+<       use icedrv_state, only: trcrn
+<       use icedrv_domain_size, only: ncat
+< 
+<       integer (kind=int_kind), intent(in), optional :: &
+<          dims(:)           ! netcdf dimension IDs
+< 
+<       integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
+<       character(len=*), parameter :: subname='(write_restart_pond_sealvl)'
+< 
+<       call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+<            nt_ipnd_out=nt_ipnd)
+<       call icepack_warnings_flush(nu_diag)
+<       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+<           file=__FILE__,line= __LINE__)
+< 
+<       call write_restart_field(nu_dump,trcrn(:,nt_apnd,:),ncat,'apnd',dims)
+<       call write_restart_field(nu_dump,trcrn(:,nt_hpnd,:),ncat,'hpnd',dims)
+<       call write_restart_field(nu_dump,trcrn(:,nt_ipnd,:),ncat,'ipnd',dims)
+<       call write_restart_field(nu_dump,fsnow(:),1,'fsnow',dims)
+<       call write_restart_field(nu_dump,dhsn(:,:),ncat,'dhsn',dims)
+<       call write_restart_field(nu_dump,ffracn(:,:),ncat,'ffracn',dims)
+< 
+<       end subroutine write_restart_pond_sealvl
+< 
+< !=======================================================================
+< 
+< ! Reads all values needed for a sea level pond restart
+< !
+<       subroutine read_restart_pond_sealvl()
+< 
+<       use icedrv_arrays_column, only: dhsn, ffracn
+<       use icedrv_flux, only: fsnow
+<       use icedrv_state, only: trcrn
+<       use icedrv_domain_size, only: ncat
+<       integer (kind=int_kind) :: nt_apnd, nt_hpnd, nt_ipnd
+<       character(len=*), parameter :: subname='(write_restart_pond_sealvl)'
+< 
+<       call icepack_query_tracer_indices(nt_apnd_out=nt_apnd, nt_hpnd_out=nt_hpnd, &
+<            nt_ipnd_out=nt_ipnd)
+<       call icepack_warnings_flush(nu_diag)
+<       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+<           file=__FILE__,line= __LINE__)
+< 
+<       write(nu_diag,*) 'min/max level-ice ponds'
+< 
+<       call read_restart_field(nu_restart,trcrn(:,nt_apnd,:),ncat,'apnd')
+<       call read_restart_field(nu_restart,trcrn(:,nt_hpnd,:),ncat,'hpnd')
+<       call read_restart_field(nu_restart,trcrn(:,nt_ipnd,:),ncat,'ipnd')
+<       call read_restart_field(nu_restart,fsnow(:),1,'fsnow')
+<       call read_restart_field(nu_restart,dhsn(:,:),ncat,'dhsn')
+<       call read_restart_field(nu_restart,ffracn(:,:),ncat,'ffracn')
+< 
+<       end subroutine read_restart_pond_sealvl
+diff -r Icepack/configuration/driver/icedrv_RunMod.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_RunMod.F90
+35c35
+<       use icedrv_forcing, only: get_forcing, get_wave_spec, precalc_forc
+---
+>       use icedrv_forcing, only: get_forcing, get_wave_spec
+77,81c77
+<          if (precalc_forc) then
+<             call get_forcing(istep)    ! precalculated arrays are indexed by istep
+<          else
+<             call get_forcing(istep1)   ! get forcing from data arrays
+<          endif
+---
+>          call get_forcing(istep1)  ! get forcing from data arrays
+diff -r Icepack/configuration/driver/icedrv_step.F90 ../../../fesom2.6.62721d3e-icepack1.5.0/src/icepack_drivers/Icepack/configuration/driver/icedrv_step.F90
+132,133d131
+<       use icedrv_flux, only: dpnd_flushn, dpnd_exponn, dpnd_freebdn, dpnd_initialn, dpnd_dlidn
+<       use icedrv_flux, only: dpnd_flush, dpnd_expon, dpnd_freebd, dpnd_initial, dpnd_dlid
+378,383c376
+<             yday = yday,  prescribed_ice = prescribed_ice,        &
+<             dpnd_flush  = dpnd_flush(i),   dpnd_flushn  = dpnd_flushn(i,:),   &
+<             dpnd_expon  = dpnd_expon(i),   dpnd_exponn  = dpnd_exponn(i,:),   &
+<             dpnd_freebd = dpnd_freebd(i),  dpnd_freebdn = dpnd_freebdn(i,:),  &
+<             dpnd_initial= dpnd_initial(i), dpnd_initialn= dpnd_initialn(i,:), &
+<             dpnd_dlid   = dpnd_dlid(i),    dpnd_dlidn   = dpnd_dlidn(i,:))
+---
+>             yday = yday,  prescribed_ice = prescribed_ice)
+449d441
+<       use icedrv_flux, only: dpnd_melt
+472,474d463
+<       character (len=char_len) :: &
+<          wave_height_type ! type of significant wave height forcing
+< 
+483d471
+<       call icepack_query_parameters(wave_height_type_out=wave_height_type)
+493,497c481,483
+<             ! significant wave height
+<             if (tr_fsd .and. trim(wave_height_type) == 'internal') then
+<                wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
+<             ! else wave_sig_ht = 0 unless provided by coupler or other external data
+<             endif
+---
+>             ! wave_sig_ht - compute here to pass to add new ice
+>             if (tr_fsd) &
+>             wave_sig_ht(i) = c4*SQRT(SUM(wave_spectrum(i,:)*dwavefreq(:)))
+534a521
+>                          dwavefreq=dwavefreq(:),                      &
+538,539c525
+<                          d_afsd_weld=d_afsd_weld(i,:),                &
+<                          dpnd_melt=dpnd_melt(i))
+---
+>                          d_afsd_weld=d_afsd_weld(i,:))
+683a670,671
+>       character (len=char_len) :: wave_spec_type
+> 
+685a674,678
+>       call icepack_query_parameters(wave_spec_type_out=wave_spec_type)
+>       call icepack_warnings_flush(nu_diag)
+>       if (icepack_warnings_aborted()) call icedrv_system_abort(string=subname, &
+>              file=__FILE__,line= __LINE__)
+> 
+688c681
+<            call icepack_step_wavefracture (                    &
+---
+>            call icepack_step_wavefracture (wave_spec_type=wave_spec_type, &
+697,698c690
+<                         d_afsd_wave   = d_afsd_wave  (i,:),    &
+<                         wave_height   = wave_sig_ht  (i))
+---
+>                         d_afsd_wave   = d_afsd_wave  (i,:))
+826d817
+<       use icedrv_flux, only: dpnd_ridge
+897,898c888
+<                          closing=closing(i),       Tf=Tf(i),                 &
+<                          dpnd_ridge=dpnd_ridge(i))
+---
+>                          closing=closing(i),       Tf=Tf(i) )
+937,938c927
+<                          flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i),          &
+<                          dpnd_ridge=dpnd_ridge(i))
+---
+>                          flux_bio=flux_bio(i,1:nbtrcr), Tf = Tf(i))

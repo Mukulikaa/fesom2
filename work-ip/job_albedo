@@ -1,0 +1,79 @@
+#!/bin/bash
+#___SET SLURM OPTIONS___________________________________________________________
+#SBATCH --account=meereis.meereis    # edit your account
+#SBATCH --job-name=core2ip
+#SBATCH --partition=mpp
+
+# disable hyperthreading
+#SBATCH --hint=nomultithread
+#SBATCH --nodes=4                   # Number of tasks (MPI) tasks to be launched
+#SBATCH --tasks-per-node 127        # using all 128CPus we exceed the maxload limit (>130) of many used nodes
+#SBATCH --cpus-per-task 1
+#SBATCH --time=12:00:00
+#SBATCH --qos=12h
+
+#SBATCH -o fesom2_%x_%j.out
+#SBATCH -e fesom2_%x_%j.out
+
+##SBATCH --mail-type=END
+##SBATCH --mail-user=Frank.Kauker@awi.de
+
+#___SET VARIABLES FOR namelist.config___
+step_per_day=48 # 48/72/96/144/192
+#step_per_day=144 # 48/72/96/144
+run_length=10 # 20/10
+run_length_unit="'y'"
+MeshPath="'/albedo/work/projects/p_oceantracers/fesom2/core2/mesh_core2_srt_dep_at_node/'" # mind '/' at the end
+ClimateDataPath="'/albedo/work/projects/p_pool_fesom1/hydrography/'"                       # mind '/' at the end
+ResultPath="'/albedo/scratch/user/fkauker/fesom2/core2-ip153/'"                            # mind '/' at the end
+logfile_outfreq=$step_per_day
+yearnew=2000
+
+#___LOAD MODULES___
+module purge 
+source ../env/albedo/shell
+export OMP_NUM_THREADS=1
+ulimit -s unlimited
+
+#___COPY namelists IF NOT EXISTS___
+ln -s ../bin/fesom.x .           # cp -n ../bin/fesom.x
+cp -n ../config/namelist.config  .
+cp -n ../config/namelist.forcing .
+cp -n ../config/namelist.oce     .
+cp -n ../config/namelist.dyn     .
+cp -n ../config/namelist.tra     .
+cp -n ../config/namelist.ice     .
+cp -n ../config/namelist.io      .
+cp -n ../config/namelist.icepack .
+
+#___GENERATE 'namelist.config'___
+sed -e "s@<step_per_day>@${step_per_day}@g" \
+    -e "s@<run_length>@${run_length}@g" \
+    -e "s@<run_length_unit>@${run_length_unit}@g" \
+    -e "s@<MeshPath>@${MeshPath}@g" \
+    -e "s@<ClimateDataPath>@${ClimateDataPath}@g" \
+    -e "s@<ResultPath>@${ResultPath}@g" \
+    -e "s@<logfile_outfreq>@${logfile_outfreq}@g" \
+    -e "s@<yearnew>@${yearnew}@g" \
+    template.config > namelist.config
+
+#___DETERMINE SLURM JOBID+OUTPUTFILE___
+jobid=$(echo $SLURM_JOB_ID | cut -d"." -f1)
+fname="fesom2_${SLURM_JOB_NAME}_${jobid}.out"
+
+#___PUT JOB IN QUEUE___
+date
+srun --mpi=pmi2 ./fesom.x >> ${fname}
+err_srun=$?
+echo -e "\033[33m --> err_srun=${err_srun} \033[0m"
+date
+
+#___SETUP JOBCHAIN____
+if grep "DUE TO TIME LIMIT" ${filename} > /dev/null
+then
+   echo "Job chain interupted"
+else
+    if [ ${err_srun} -eq 0 ]; then
+        sbatch --dependency=aftercorr:$SLURM_JOB_ID job_albedo
+    fi
+fi
