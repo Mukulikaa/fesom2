@@ -39,6 +39,7 @@ MODULE io_RESTART
   
 #if defined(__icepack)
   type(restart_file_group) , save, public :: icepack_files
+  character(:), allocatable, save, public :: icepack_path
 #endif  
 
 #if defined(__recom)

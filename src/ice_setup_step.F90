@@ -173,7 +173,7 @@ subroutine ice_timestep(step, ice, partit, mesh)
     call fesom_profiler_start("ice_dynamics")
 #endif
 #if defined (__icepack)
-    call step_icepack(ice, mesh, time_evp, time_advec, time_therm) ! EVP, advection and thermodynamic parts
+    call step_icepack(flag_debug, ice, mesh, time_evp, time_advec, time_therm) ! EVP, advection and thermodynamic parts
 #else
 
     !$ACC UPDATE DEVICE (ice%work%fct_massmatrix) &

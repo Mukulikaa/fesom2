@@ -420,9 +420,12 @@ contains
         ! Setup icepack
         !=====================
         if (f%mype==0) write(*,*) 'Icepack: reading namelists from namelist.icepack'
-        call set_icepack(f%ice, f%partit)
+        if (flag_debug .and. f%mype==0)  print *, achar(27)//'[34m'//' --> call set_icepack'//achar(27)//'[0m'
+        call set_icepack(flag_debug, f%ice, f%partit)
+        if (flag_debug .and. f%mype==0)  print *, achar(27)//'[34m'//' --> call alloc_icepack'//achar(27)//'[0m'
         call alloc_icepack
-        call init_icepack(f%ice, f%tracers%data(1), f%mesh)
+        if (flag_debug .and. f%mype==0)  print *, achar(27)//'[34m'//' --> call init_icepack'//achar(27)//'[0m'
+        call init_icepack(flag_debug, f%ice, f%tracers%data(1), f%mesh)
         if (f%mype==0) write(*,*) 'Icepack: setup complete'
 #endif
         call clock_newyear                        ! check if it is a new year
